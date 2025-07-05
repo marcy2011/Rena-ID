@@ -36,9 +36,140 @@ if ($step === 'email' && isset($_POST['email'])) {
         $code = rand(100000, 999999);
         file_put_contents(get_code_filename($email), $code . "|" . time());
 
-        $subject = "Codice reimpostazione password Rena ID";
-        $message = "Ciao!\nIl tuo codice per reimpostare la password è: $code\nValido per 10 minuti.\nSe non hai richiesto questo codice, ignora l'email\nIl Team di Rena";
-        $headers = "From: Rena ID <rena@altervista.org>\r\n";
+$lang = $_POST['lang'] ?? 'it';
+
+if ($lang === 'en') {
+    $subject = "Rena ID Password Reset Code";
+    $message = "<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Password Reset Code</title>
+</head>
+<body style='margin: 0; padding: 0; font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; background-color: #000000; color: #ffffff;'>
+    <div style='max-width: 600px; margin: 0 auto; padding: 40px 20px;'>
+        <div style='background: rgba(0, 0, 0, 0.8); border-radius: 24px; padding: 40px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center;'>
+            
+            <div style='margin-bottom: 30px;'>
+                <svg width='60' height='60' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg' style='margin: 0 auto; display: block;'>
+                    <path d='M12 14.5V16.5M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288' stroke='#ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
+                </svg>
+            </div>
+            
+            <h1 style='font-size: 24px; font-weight: 600; margin-bottom: 20px; color: #ffffff;'>
+                Password Reset
+            </h1>
+            
+            <p style='font-size: 16px; color: #d1d5db; margin-bottom: 30px; line-height: 1.5;'>
+                Hi! You requested to reset the password for your Rena ID account.
+            </p>
+            
+            <div style='background: linear-gradient(135deg, #4a4a4a 0%, #2c2c2c 100%); border-radius: 16px; padding: 30px; margin: 30px 0; border: 1px solid rgba(255, 255, 255, 0.1);'>
+                <p style='font-size: 14px; color: #d1d5db; margin-bottom: 10px; font-weight: 500;'>
+                    Your verification code is:
+                </p>
+<div style='font-size: 30px; font-weight: 700; color: #ffffff; letter-spacing: 8px; margin: 20px 0; font-family: monospace; white-space: nowrap; overflow-x: auto; text-align: center; right: 50%;'>
+    $code
+</div>
+                <p style='font-size: 12px; color: #d1d5db; margin-top: 15px;'>
+                    Valid for 10 minutes
+                </p>
+            </div>
+            
+            <div style='background: rgba(16, 185, 129, 0.1); border-radius: 12px; padding: 20px; margin: 20px 0; border: 1px solid rgba(16, 185, 129, 0.2);'>
+                <p style='font-size: 14px; color: #10b981; margin: 0; font-weight: 500;'>
+                    Enter this code on the password reset page to continue.
+                </p>
+            </div>
+            
+            <div style='background: rgba(255, 68, 68, 0.1); border-radius: 12px; padding: 20px; margin: 20px 0; border: 1px solid rgba(255, 68, 68, 0.2);'>
+                <p style='font-size: 14px; color: #ff4444; margin: 0; font-weight: 500;'>
+                    If you didn't request this password reset, please ignore this email. Your account remains secure.
+                </p>
+            </div>
+            
+            <div style='margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);'>
+                <p style='font-size: 14px; color: #d1d5db; margin-bottom: 10px;'>
+                    Thank you for using Rena ID
+                </p>
+                <p style='font-size: 12px; color: #6b7280; margin: 0;'>
+                    The Rena Team
+                </p>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>";
+} else {
+    $subject = "Codice reimpostazione password Rena ID";
+    $message = "<!DOCTYPE html>
+<html lang='it'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Codice reimpostazione password</title>
+</head>
+<body style='margin: 0; padding: 0; font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif; background-color: #000000; color: #ffffff;'>
+    <div style='max-width: 600px; margin: 0 auto; padding: 40px 20px;'>
+        <div style='background: rgba(0, 0, 0, 0.8); border-radius: 24px; padding: 40px; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center;'>
+            
+            <div style='margin-bottom: 30px;'>
+                <svg width='60' height='60' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg' style='margin: 0 auto; display: block;'>
+                    <path d='M12 14.5V16.5M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288' stroke='#ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/>
+                </svg>
+            </div>
+            
+            <h1 style='font-size: 24px; font-weight: 600; margin-bottom: 20px; color: #ffffff;'>
+                Reimpostazione Password
+            </h1>
+            
+            <p style='font-size: 16px; color: #d1d5db; margin-bottom: 30px; line-height: 1.5;'>
+                Ciao! Hai richiesto di reimpostare la password per il tuo account Rena ID.
+            </p>
+            
+            <div style='background: linear-gradient(135deg, #4a4a4a 0%, #2c2c2c 100%); border-radius: 16px; padding: 30px; margin: 30px 0; border: 1px solid rgba(255, 255, 255, 0.1);'>
+                <p style='font-size: 14px; color: #d1d5db; margin-bottom: 10px; font-weight: 500;'>
+                    Il tuo codice di verifica è:
+                </p>
+                <div style='font-size: 30px; font-weight: 700; color: #ffffff; letter-spacing: 8px; margin: 20px 0; font-family: monospace; white-space: nowrap; overflow-x: auto; text-align: center;'>
+                    $code
+                </div>
+                <p style='font-size: 12px; color: #d1d5db; margin-top: 15px;'>
+                    Valido per 10 minuti
+                </p>
+            </div>
+            
+            <div style='background: rgba(16, 185, 129, 0.1); border-radius: 12px; padding: 20px; margin: 20px 0; border: 1px solid rgba(16, 185, 129, 0.2);'>
+                <p style='font-size: 14px; color: #10b981; margin: 0; font-weight: 500;'>
+                    Inserisci questo codice nella pagina di reimpostazione password per continuare.
+                </p>
+            </div>
+            
+            <div style='background: rgba(255, 68, 68, 0.1); border-radius: 12px; padding: 20px; margin: 20px 0; border: 1px solid rgba(255, 68, 68, 0.2);'>
+                <p style='font-size: 14px; color: #ff4444; margin: 0; font-weight: 500;'>
+                    Se non hai richiesto questa reimpostazione password, ignora questa email. Il tuo account rimane sicuro.
+                </p>
+            </div>
+            
+            <div style='margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);'>
+                <p style='font-size: 14px; color: #d1d5db; margin-bottom: 10px;'>
+                    Grazie per aver usato Rena ID
+                </p>
+                <p style='font-size: 12px; color: #6b7280; margin: 0;'>
+                    Il Team Rena
+                </p>
+            </div>
+            
+        </div>
+    </div>
+</body>
+</html>";
+}
+$headers = "From: Rena ID <rena@altervista.org>\r\n";
+$headers .= "MIME-Version: 1.0\r\n";
+$headers .= "Content-Type: text/html; charset=UTF-8\r\n";
         mail($email, $subject, $message, $headers);
 
         $_SESSION['email'] = $email;
@@ -495,6 +626,7 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
 
             <form method="POST">
                 <input type="hidden" name="step" value="email" />
+                <input type="hidden" name="lang" id="form-lang" value="it" />
                 <div class="form-group">
                     <label for="email" data-translate-en="Email Address" data-translate-it="Indirizzo Email">Indirizzo Email</label>
                     <div class="input-container">
@@ -521,6 +653,7 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
 
             <form method="POST">
                 <input type="hidden" name="step" value="code" />
+                <input type="hidden" name="lang" id="form-lang" value="it" />
                 <div class="form-group">
                     <label for="code" data-translate-en="Verification Code" data-translate-it="Codice di Verifica">Codice di Verifica</label>
                     <div class="input-container">
@@ -547,6 +680,7 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
 
             <form method="POST">
                 <input type="hidden" name="step" value="reset" />
+                <input type="hidden" name="lang" id="form-lang" value="it" />
                 <div class="form-group">
                     <label for="new_password" data-translate-en="New Password" data-translate-it="Nuova Password">Nuova Password</label>
                     <div class="input-container">
@@ -598,6 +732,10 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
             document.querySelectorAll('[data-translate-it]').forEach(function (el) {
                 el.textContent = lang === 'it' ? el.getAttribute('data-translate-it') : el.getAttribute('data-translate-en');
             });
+
+    document.querySelectorAll('#form-lang').forEach(function(el) {
+        el.value = lang;
+    });
 
             document.querySelectorAll('[data-placeholder-it]').forEach(function (el) {
                 el.setAttribute('placeholder', lang === 'it' ? el.getAttribute('data-placeholder-it') : el.getAttribute('data-placeholder-en'));
