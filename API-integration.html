@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <title>API Integration</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="logo.png">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Open Sans', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .account-banner {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideIn 0.5s ease forwards;
+            animation-delay: 0.2s;
+        }
+
+        .login-banner {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideIn 0.5s ease forwards;
+            animation-delay: 0.2s;
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .account-banner:hover, .login-banner:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .account-info, .login-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .profile-pic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            transition: border-color 0.3s ease;
+        }
+
+        .account-banner:hover .profile-pic {
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .login-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #d1d5db;
+            transition: all 0.3s ease;
+        }
+
+        .login-banner:hover .login-icon {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .user-details h3, .login-details h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .user-details p, .login-details p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            color: #d1d5db;
+        }
+
+        .account-arrow {
+            font-size: 20px;
+            color: #6b7280;
+            transition: all 0.3s ease;
+        }
+
+        .account-banner:hover .account-arrow,
+        .login-banner:hover .account-arrow {
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .account-banner, .login-banner {
+                padding: 15px;
+            }
+            
+            .profile-pic, .login-icon {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .user-details h3, .login-details h3 {
+                font-size: 14px;
+            }
+            
+            .user-details p, .login-details p {
+                font-size: 12px;
+            }
+        }
+
+        *:focus {
+            outline: none;
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="account-banner hidden" id="account-banner">
+            <div class="account-info">
+                <img src="https://via.placeholder.com/50x50/333/fff?text=U" alt="Foto profilo" class="profile-pic" id="profile-pic">
+                <div class="user-details">
+                    <h3 id="username-display">Caricamento...</h3>
+                    <p data-translate-it="Il tuo account Rena" data-translate-en="Your Rena account">Il tuo account Rena</p>
+                </div>
+            </div>
+            <i class="fas fa-arrow-right account-arrow"></i>
+        </div>
+
+        <div class="login-banner hidden" id="login-banner">
+            <div class="login-info">
+                <div class="login-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="login-details">
+                    <h3 data-translate-it="Accedi al tuo account" data-translate-en="Sign in to your account">Accedi al tuo account</h3>
+                    <p data-translate-it="Accedi per personalizzare la tua esperienza" data-translate-en="Sign in to personalize your experience">Accedi per personalizzare la tua esperienza</p>
+                </div>
+            </div>
+            <i class="fas fa-arrow-right account-arrow"></i>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            checkLoginStatus();
+            
+            setupEventListeners();
+            
+            setInterval(checkLoginStatus, 30000); 
+            
+            handleLoginRedirect();
+        });
+
+        function setupEventListeners() {
+            const accountBanner = document.getElementById('account-banner');
+            if (accountBanner) {
+                accountBanner.addEventListener('click', function() {
+                    window.location.href = 'account.php';
+                });
+            }
+            
+            const loginBanner = document.getElementById('login-banner');
+            if (loginBanner) {
+                loginBanner.addEventListener('click', function() {
+                    localStorage.setItem('preLoginUrl', window.location.href);
+                    window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.href);
+                });
+            }
+        }
+
+        function handleLoginRedirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('from_login')) {
+                const newUrl = window.location.pathname;
+                history.replaceState(null, '', newUrl);
+                setTimeout(() => checkLoginStatus(true), 100);
+            }
+        }
+
+        function checkLoginStatus(forceUpdate = false) {
+            const url = 'get_user_data.php?nocache=' + new Date().getTime();
+            
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Cache-Control': 'no-cache',
+                    'Pragma': 'no-cache'
+                },
+                cache: 'no-cache'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Errore HTTP: ' + response.status);
+                }
+                return response.text();
+            })
+            .then(responseText => {
+                if (responseText.trim().startsWith('<')) {
+                    throw new Error('Il server ha restituito HTML invece di JSON. Controlla get_user_data.php');
+                }
+                
+                try {
+                    const data = JSON.parse(responseText);
+                    updateUI(data);
+                } catch (parseError) {
+                    console.error('Errore nel parsing JSON:', parseError);
+                    showLoginBanner();
+                }
+            })
+            .catch(error => {
+                console.error('Errore nel controllo login:', error);
+                showLoginBanner();
+            });
+        }
+
+        function updateUI(data) {
+            const accountBanner = document.getElementById('account-banner');
+            const loginBanner = document.getElementById('login-banner');
+            
+            if (!accountBanner || !loginBanner) {
+                return;
+            }
+            
+            if (data && data.logged_in === true) {
+                const profilePic = document.getElementById('profile-pic');
+                const usernameDisplay = document.getElementById('username-display');
+                
+                if (profilePic) {
+                    profilePic.src = data.profile_pic || 'https://via.placeholder.com/50x50/333/fff?text=U';
+                    profilePic.onerror = function() {
+                        this.src = 'https://via.placeholder.com/50x50/333/fff?text=U';
+                    };
+                }
+                
+                if (usernameDisplay) {
+                    usernameDisplay.textContent = data.username || 'Utente';
+                }
+                
+                accountBanner.classList.remove('hidden');
+                loginBanner.classList.add('hidden');
+            } else {
+                showLoginBanner();
+            }
+        }
+
+        function showLoginBanner() {
+            const accountBanner = document.getElementById('account-banner');
+            const loginBanner = document.getElementById('login-banner');
+            
+            if (accountBanner && loginBanner) {
+                accountBanner.classList.add('hidden');
+                loginBanner.classList.remove('hidden');
+            }
+        }
+
+        window.addEventListener('focus', function() {
+            checkLoginStatus();
+        });
+
+        window.addEventListener('pageshow', function(e) {
+            if (e.persisted) {
+                checkLoginStatus();
+            }
+        });
+    </script>
+</body>
+</html>
