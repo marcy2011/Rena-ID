@@ -5,29 +5,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="logo.png">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap">
+    <link href="https://api.fontshare.com/v2/css?f[]=open-sauce-one@400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body {
-            font-family: 'Open Sans', sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            background-color: black;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Open Sauce One', sans-serif;
+            background: black;
             color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 100%;
             margin: 0 auto;
             padding: 20px;
-            box-sizing: border-box;
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+
+        .account-section {
+            width: 100%;
+            margin-top: 40px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: slideIn 0.5s ease forwards;
+            animation-delay: 0.2s;
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .account-banner {
@@ -44,10 +62,8 @@
             justify-content: space-between;
             transition: all 0.3s ease;
             cursor: pointer;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: slideIn 0.5s ease forwards;
-            animation-delay: 0.2s;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-bottom: 15px;
         }
 
         .login-banner {
@@ -64,22 +80,13 @@
             justify-content: space-between;
             transition: all 0.3s ease;
             cursor: pointer;
-            opacity: 0;
-            transform: translateY(20px);
-            animation: slideIn 0.5s ease forwards;
-            animation-delay: 0.2s;
-        }
-
-        @keyframes slideIn {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            margin-bottom: 15px;
         }
 
         .account-banner:hover, .login-banner:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(255, 255, 255, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
             border-color: rgba(255, 255, 255, 0.2);
         }
 
@@ -98,14 +105,32 @@
             transition: border-color 0.3s ease;
         }
 
-        .account-banner:hover .profile-pic {
+        .default-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            font-weight: 600;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .account-banner:hover .profile-pic,
+        .account-banner:hover .default-avatar {
             border-color: rgba(255, 255, 255, 0.4);
         }
 
         .login-icon {
             width: 50px;
             height: 50px;
-            border-radius: 50%;
+            border-radius: 50% !important;
+            flex-shrink: 0;
             background: rgba(255, 255, 255, 0.1);
             display: flex;
             align-items: center;
@@ -149,183 +174,231 @@
             display: none !important;
         }
 
-        @media (max-width: 600px) {
-            .account-banner, .login-banner {
-                padding: 15px;
-            }
-            
-            .profile-pic, .login-icon {
-                width: 40px;
-                height: 40px;
-            }
-            
-            .user-details h3, .login-details h3 {
-                font-size: 14px;
-            }
-            
-            .user-details p, .login-details p {
-                font-size: 12px;
-            }
+        ::selection {
+            background-color: white;
+            color: black;
         }
 
         *:focus {
             outline: none;
         }
 
-        * {
-            -webkit-tap-highlight-color: transparent;
+        @media (max-width: 480px) {
+            .profile-pic, .login-icon, .default-avatar {
+                width: 44px;
+                height: 44px;
+            }
+            
+            .user-details h3, .login-details h3 {
+                font-size: 15px;
+            }
+            
+            .user-details p, .login-details p {
+                font-size: 13px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="account-banner hidden" id="account-banner">
-            <div class="account-info">
-                <img src="https://via.placeholder.com/50x50/333/fff?text=U" alt="Foto profilo" class="profile-pic" id="profile-pic">
-                <div class="user-details">
-                    <h3 id="username-display">Caricamento...</h3>
-                    <p data-translate-it="Il tuo account Rena" data-translate-en="Your Rena account">Il tuo account Rena</p>
+        <div class="account-section">
+            <div class="account-banner hidden" id="account-banner">
+                <div class="account-info" id="account-info-container">
+                    <!-- Profile picture or default avatar will be inserted here by JavaScript -->
+                    <!-- User details will also be inserted here by JavaScript -->
                 </div>
+                <i class="fas fa-arrow-right account-arrow"></i>
             </div>
-            <i class="fas fa-arrow-right account-arrow"></i>
-        </div>
 
-        <div class="login-banner hidden" id="login-banner">
-            <div class="login-info">
-                <div class="login-icon">
-                    <i class="fas fa-user"></i>
+            <div class="login-banner hidden" id="login-banner">
+                <div class="login-info">
+                    <div class="login-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="login-details">
+                        <h3 data-translate-it="Accedi al tuo account" data-translate-en="Sign in to your account">Accedi al tuo account</h3>
+                        <p data-translate-it="Accedi per personalizzare la tua esperienza" data-translate-en="Sign in to personalize your experience">Accedi per personalizzare la tua esperienza</p>
+                    </div>
                 </div>
-                <div class="login-details">
-                    <h3 data-translate-it="Accedi al tuo account" data-translate-en="Sign in to your account">Accedi al tuo account</h3>
-                    <p data-translate-it="Accedi per personalizzare la tua esperienza" data-translate-en="Sign in to personalize your experience">Accedi per personalizzare la tua esperienza</p>
-                </div>
+                <i class="fas fa-arrow-right account-arrow"></i>
             </div>
-            <i class="fas fa-arrow-right account-arrow"></i>
         </div>
     </div>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            checkLoginStatus();
-            
-            setupEventListeners();
-            
-            setInterval(checkLoginStatus, 30000); 
-            
-            handleLoginRedirect();
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    loadSavedLanguage();
+    checkLoginStatus();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    const accountBanner = document.getElementById('account-banner');
+    if (accountBanner) {
+        accountBanner.addEventListener('click', function() {
+            window.location.href = 'account.php';
         });
+    }
+    
+    const loginBanner = document.getElementById('login-banner');
+    if (loginBanner) {
+        loginBanner.addEventListener('click', function() {
+            localStorage.setItem('preLoginUrl', window.location.href);
+            window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.href);
+        });
+    }
+}
 
-        function setupEventListeners() {
-            const accountBanner = document.getElementById('account-banner');
-            if (accountBanner) {
-                accountBanner.addEventListener('click', function() {
-                    window.location.href = 'account.php';
-                });
-            }
-            
-            const loginBanner = document.getElementById('login-banner');
-            if (loginBanner) {
-                loginBanner.addEventListener('click', function() {
-                    localStorage.setItem('preLoginUrl', window.location.href);
-                    window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.href);
-                });
-            }
-        }
+function checkLoginStatus(forceUpdate = false) {
+    const url = 'account.php?nocache=' + new Date().getTime();
+    
+    fetch(url, {
+        method: 'GET',
+        headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+        },
+        cache: 'no-cache'
+    })
+    .then(response => response.text())
+    .then(text => {
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
 
-        function handleLoginRedirect() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('from_login')) {
-                const newUrl = window.location.pathname;
-                history.replaceState(null, '', newUrl);
-                setTimeout(() => checkLoginStatus(true), 100);
-            }
-        }
+            const username = doc.querySelector('.user-info h2')?.textContent.replace('Benvenuto, ', '').replace('Welcome, ', '').replace('!', '').trim();
+            const profilePhoto = doc.querySelector('.profile-photo')?.getAttribute('src');
 
-        function checkLoginStatus(forceUpdate = false) {
-            const url = 'get_user_data.php?nocache=' + new Date().getTime();
-            
-            fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Cache-Control': 'no-cache',
-                    'Pragma': 'no-cache'
-                },
-                cache: 'no-cache'
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Errore HTTP: ' + response.status);
-                }
-                return response.text();
-            })
-            .then(responseText => {
-                if (responseText.trim().startsWith('<')) {
-                    throw new Error('Il server ha restituito HTML invece di JSON. Controlla get_user_data.php');
-                }
-                
-                try {
-                    const data = JSON.parse(responseText);
-                    updateUI(data);
-                } catch (parseError) {
-                    console.error('Errore nel parsing JSON:', parseError);
-                    showLoginBanner();
-                }
-            })
-            .catch(error => {
-                console.error('Errore nel controllo login:', error);
-                showLoginBanner();
+            updateProfileUI({
+                logged_in: true,
+                username: username,
+                profile_photo: profilePhoto
             });
+        } catch (error) {
+            console.error('Errore nel parsing della risposta:', error);
+            showLoginUI();
+        }
+    })
+    .catch(error => {
+        console.error('Errore nel controllo login:', error);
+        showLoginUI();
+    });
+}
+
+function updateProfileUI(data) {
+    const accountBanner = document.getElementById('account-banner');
+    const loginBanner = document.getElementById('login-banner');
+    const accountInfoContainer = document.getElementById('account-info-container');
+
+    if (!accountInfoContainer) return;
+
+    // Clear previous content in the account info container
+    accountInfoContainer.innerHTML = '';
+
+    if (data && data.logged_in === true && data.username && data.username.trim() !== '') {
+        // Create the user details div
+        const userDetailsDiv = document.createElement('div');
+        userDetailsDiv.className = 'user-details';
+        userDetailsDiv.innerHTML = `
+            <h3 id="username-display">${data.username}</h3>
+            <p data-translate-it="Il tuo account Rena" data-translate-en="Your Rena account">Il tuo account Rena</p>
+        `;
+
+        if (data.profile_photo) {
+            const img = document.createElement('img');
+            img.className = 'profile-pic';
+            img.alt = 'Foto profilo';
+
+            img.onerror = function () {
+                // Fallback to default avatar if image fails to load
+                const initial = data.username.charAt(0).toUpperCase();
+                const defaultAvatarDiv = document.createElement('div');
+                defaultAvatarDiv.className = 'default-avatar';
+                defaultAvatarDiv.textContent = initial;
+                accountInfoContainer.appendChild(defaultAvatarDiv);
+                accountInfoContainer.appendChild(userDetailsDiv);
+            };
+
+            img.onload = function () {
+                // Append image if it loads successfully
+                accountInfoContainer.appendChild(img);
+                accountInfoContainer.appendChild(userDetailsDiv);
+            };
+
+            // Set src to trigger load/error
+            img.src = data.profile_photo;
+
+        } else {
+            // If no profile photo, display default avatar
+            const initial = data.username.charAt(0).toUpperCase();
+            const defaultAvatarDiv = document.createElement('div');
+            defaultAvatarDiv.className = 'default-avatar';
+            defaultAvatarDiv.textContent = initial;
+            accountInfoContainer.appendChild(defaultAvatarDiv);
+            accountInfoContainer.appendChild(userDetailsDiv);
         }
 
-        function updateUI(data) {
-            const accountBanner = document.getElementById('account-banner');
-            const loginBanner = document.getElementById('login-banner');
-            
-            if (!accountBanner || !loginBanner) {
-                return;
-            }
-            
-            if (data && data.logged_in === true) {
-                const profilePic = document.getElementById('profile-pic');
-                const usernameDisplay = document.getElementById('username-display');
-                
-                if (profilePic) {
-                    profilePic.src = data.profile_pic || 'https://via.placeholder.com/50x50/333/fff?text=U';
-                    profilePic.onerror = function() {
-                        this.src = 'https://via.placeholder.com/50x50/333/fff?text=U';
-                    };
-                }
-                
-                if (usernameDisplay) {
-                    usernameDisplay.textContent = data.username || 'Utente';
-                }
-                
-                accountBanner.classList.remove('hidden');
-                loginBanner.classList.add('hidden');
-            } else {
-                showLoginBanner();
-            }
+        // Show the account banner and hide the login banner
+        accountBanner.classList.remove('hidden');
+        loginBanner.classList.add('hidden');
+        translatePage(localStorage.getItem('preferredLanguage') || 'it'); // Re-apply translation for the new elements
+    } else {
+        // If the user is not logged in, show the login banner
+        showLoginUI();
+    }
+}
+
+function showLoginUI() {
+    const accountBanner = document.getElementById('account-banner');
+    const loginBanner = document.getElementById('login-banner');
+    const accountInfoContainer = document.getElementById('account-info-container');
+
+    if (accountBanner && loginBanner && accountInfoContainer) {
+        accountBanner.classList.add('hidden');
+        loginBanner.classList.remove('hidden');
+        
+        // Clear any previous profile picture/avatar and set a default login icon
+        accountInfoContainer.innerHTML = `
+            <div class="login-icon">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="user-details">
+                <h3 data-translate-it="Accedi al tuo account" data-translate-en="Sign in to your account">Accedi al tuo account</h3>
+                <p data-translate-it="Accedi per personalizzare la tua esperienza" data-translate-en="Sign in to personalize your experience">Accedi per personalizzare la tua esperienza</p>
+            </div>
+        `;
+        translatePage(localStorage.getItem('preferredLanguage') || 'it'); // Re-apply translation for the new elements
+    }
+}
+
+function translatePage(lang) {
+    localStorage.setItem('preferredLanguage', lang);
+
+    document.querySelectorAll('[data-translate-it]').forEach(function(el) {
+        if (lang === 'it') {
+            el.textContent = el.getAttribute('data-translate-it');
+        } else if (lang === 'en') {
+            el.textContent = el.getAttribute('data-translate-en');
         }
+    });
+}
 
-        function showLoginBanner() {
-            const accountBanner = document.getElementById('account-banner');
-            const loginBanner = document.getElementById('login-banner');
-            
-            if (accountBanner && loginBanner) {
-                accountBanner.classList.add('hidden');
-                loginBanner.classList.remove('hidden');
-            }
-        }
+function loadSavedLanguage() {
+    const savedLang = localStorage.getItem('preferredLanguage');
+    if (savedLang) {
+        translatePage(savedLang);
+    }
+}
 
-        window.addEventListener('focus', function() {
-            checkLoginStatus();
-        });
+window.addEventListener('focus', function() {
+    checkLoginStatus();
+});
 
-        window.addEventListener('pageshow', function(e) {
-            if (e.persisted) {
-                checkLoginStatus();
-            }
-        });
-    </script>
+window.addEventListener('pageshow', function(e) {
+    if (e.persisted) {
+        checkLoginStatus();
+    }
+});
+</script>
 </body>
 </html>
