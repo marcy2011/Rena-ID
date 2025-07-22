@@ -11,7 +11,8 @@ if (!is_dir($code_dir)) {
     mkdir($code_dir, 0777, true);
 }
 
-function get_code_filename($email) {
+function get_code_filename($email)
+{
     global $code_dir;
     return $code_dir . '/' . md5($email) . '.txt';
 }
@@ -36,11 +37,11 @@ if ($step === 'email' && isset($_POST['email'])) {
         $code = rand(100000, 999999);
         file_put_contents(get_code_filename($email), $code . "|" . time());
 
-$lang = $_POST['lang'] ?? 'it';
+        $lang = $_POST['lang'] ?? 'it';
 
-if ($lang === 'en') {
-    $subject = "Rena ID Password Reset Code";
-    $message = "<!DOCTYPE html>
+        if ($lang === 'en') {
+            $subject = "Rena ID Password Reset Code";
+            $message = "<!DOCTYPE html>
 <html lang='en'>
 <head>
     <meta charset='UTF-8'>
@@ -102,9 +103,9 @@ if ($lang === 'en') {
     </div>
 </body>
 </html>";
-} else {
-    $subject = "Codice reimpostazione password Rena ID";
-    $message = "<!DOCTYPE html>
+        } else {
+            $subject = "Codice reimpostazione password Rena ID";
+            $message = "<!DOCTYPE html>
 <html lang='it'>
 <head>
     <meta charset='UTF-8'>
@@ -166,10 +167,10 @@ if ($lang === 'en') {
     </div>
 </body>
 </html>";
-}
-$headers = "From: Rena ID <rena@altervista.org>\r\n";
-$headers .= "MIME-Version: 1.0\r\n";
-$headers .= "Content-Type: text/html; charset=UTF-8\r\n";
+        }
+        $headers = "From: Rena ID <rena@altervista.org>\r\n";
+        $headers .= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
         mail($email, $subject, $message, $headers);
 
         $_SESSION['email'] = $email;
@@ -177,9 +178,7 @@ $headers .= "Content-Type: text/html; charset=UTF-8\r\n";
     }
 
     $stmt->close();
-}
-
-elseif ($step === 'code' && isset($_POST['code'])) {
+} elseif ($step === 'code' && isset($_POST['code'])) {
     $email = $_SESSION['email'] ?? '';
     $input_code = trim($_POST['code']);
     $filename = get_code_filename($email);
@@ -200,9 +199,7 @@ elseif ($step === 'code' && isset($_POST['code'])) {
         $error = "Nessun codice trovato. Invia prima l'email.";
         $step = 'email';
     }
-}
-
-elseif ($step === 'reset' && isset($_POST['new_password'])) {
+} elseif ($step === 'reset' && isset($_POST['new_password'])) {
     $email = $_SESSION['email'] ?? '';
     $new_password = password_hash($_POST['new_password'], PASSWORD_DEFAULT);
 
@@ -226,6 +223,7 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
 
 <!DOCTYPE html>
 <html lang="it">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -460,44 +458,100 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
             border-radius: 20px;
         }
 
-        .language-popup {
+        .language-overlay {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(5px);
+            z-index: 999;
+        }
+
+        .language-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -45%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .language-popup h3 {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
             text-align: center;
         }
 
         .language-btn {
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #ffffff;
-            color: black;
-            border: none;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 20px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
             cursor: pointer;
-            font-size: 16px;
             transition: all 0.3s ease;
-            display: block;
         }
 
         .language-btn:hover {
-            background-color: black;
-            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .language-btn.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: white;
+        }
+
+        .language-btn img {
+            width: 24px;
+            margin-right: 12px;
+            border-radius: 4px;
         }
 
         .close-popup {
             position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 24px;
-            color: white;
+            top: 15px;
+            right: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 22px;
             cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .close-popup:hover {
+            color: white;
         }
 
         @media (max-width: 600px) {
@@ -596,7 +650,9 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                     <g id="SVGRepo_iconCarrier">
-                        <path d="M12 14.5V16.5M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path
+                            d="M12 14.5V16.5M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288"
+                            stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                     </g>
                 </svg>
             </div>
@@ -606,7 +662,9 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
                     <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
                     <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
                     <g id="SVGRepo_iconCarrier">
-                        <path d="M12 14.5V16.5M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path
+                            d="M12 14.5V16.5M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288"
+                            stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
                     </g>
                 </svg>
             </div>
@@ -614,7 +672,8 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
 
         <?php if ($step === 'email'): ?>
             <h1 data-translate-en="Reset Password" data-translate-it="Reimposta Password">Reimposta Password</h1>
-            <p class="subtitle" data-translate-en="Enter your email address and we'll send you a verification code" data-translate-it="Inserisci la tua email e ti invieremo un codice di verifica">
+            <p class="subtitle" data-translate-en="Enter your email address and we'll send you a verification code"
+                data-translate-it="Inserisci la tua email e ti invieremo un codice di verifica">
                 Inserisci la tua email e ti invieremo un codice di verifica
             </p>
 
@@ -628,20 +687,23 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
                 <input type="hidden" name="step" value="email" />
                 <input type="hidden" name="lang" id="form-lang" value="it" />
                 <div class="form-group">
-                    <label for="email" data-translate-en="Email Address" data-translate-it="Indirizzo Email">Indirizzo Email</label>
+                    <label for="email" data-translate-en="Email Address" data-translate-it="Indirizzo Email">Indirizzo
+                        Email</label>
                     <div class="input-container">
-                        <input type="email" id="email" name="email" placeholder="Inserisci la tua email" required 
-                               data-placeholder-en="Enter your email" data-placeholder-it="Inserisci la tua email">
+                        <input type="email" id="email" name="email" placeholder="Inserisci la tua email" required
+                            data-placeholder-en="Enter your email" data-placeholder-it="Inserisci la tua email">
                     </div>
                 </div>
                 <button type="submit" class="btn">
-                    <i class="fas fa-paper-plane"></i> <span data-translate-en="Send Code" data-translate-it="Invia Codice">Invia Codice</span>
+                    <i class="fas fa-paper-plane"></i> <span data-translate-en="Send Code"
+                        data-translate-it="Invia Codice">Invia Codice</span>
                 </button>
             </form>
 
         <?php elseif ($step === 'code'): ?>
             <h1 data-translate-en="Verify Code" data-translate-it="Verifica Codice">Verifica Codice</h1>
-            <p class="subtitle" data-translate-en="Enter the 6-digit code we sent to your email" data-translate-it="Inserisci il codice a 6 cifre che ti abbiamo inviato">
+            <p class="subtitle" data-translate-en="Enter the 6-digit code we sent to your email"
+                data-translate-it="Inserisci il codice a 6 cifre che ti abbiamo inviato">
                 Inserisci il codice a 6 cifre che ti abbiamo inviato
             </p>
 
@@ -655,20 +717,23 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
                 <input type="hidden" name="step" value="code" />
                 <input type="hidden" name="lang" id="form-lang" value="it" />
                 <div class="form-group">
-                    <label for="code" data-translate-en="Verification Code" data-translate-it="Codice di Verifica">Codice di Verifica</label>
+                    <label for="code" data-translate-en="Verification Code" data-translate-it="Codice di Verifica">Codice di
+                        Verifica</label>
                     <div class="input-container">
-                        <input type="text" id="code" name="code" placeholder="123456" required maxlength="6" 
-                               data-placeholder-en="123456" data-placeholder-it="123456">
+                        <input type="text" id="code" name="code" placeholder="123456" required maxlength="6"
+                            data-placeholder-en="123456" data-placeholder-it="123456">
                     </div>
                 </div>
                 <button type="submit" class="btn">
-                    <i class="fas fa-check"></i> <span data-translate-en="Verify Code" data-translate-it="Verifica Codice">Verifica Codice</span>
+                    <i class="fas fa-check"></i> <span data-translate-en="Verify Code"
+                        data-translate-it="Verifica Codice">Verifica Codice</span>
                 </button>
             </form>
 
         <?php elseif ($step === 'reset'): ?>
             <h1 data-translate-en="New Password" data-translate-it="Nuova Password">Nuova Password</h1>
-            <p class="subtitle" data-translate-en="Enter your new password" data-translate-it="Inserisci la tua nuova password">
+            <p class="subtitle" data-translate-en="Enter your new password"
+                data-translate-it="Inserisci la tua nuova password">
                 Inserisci la tua nuova password
             </p>
 
@@ -682,15 +747,18 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
                 <input type="hidden" name="step" value="reset" />
                 <input type="hidden" name="lang" id="form-lang" value="it" />
                 <div class="form-group">
-                    <label for="new_password" data-translate-en="New Password" data-translate-it="Nuova Password">Nuova Password</label>
+                    <label for="new_password" data-translate-en="New Password" data-translate-it="Nuova Password">Nuova
+                        Password</label>
                     <div class="input-container">
-                        <input type="password" id="new_password" name="new_password" placeholder="Inserisci la nuova password" required 
-                               data-placeholder-en="Enter new password" data-placeholder-it="Inserisci la nuova password">
+                        <input type="password" id="new_password" name="new_password"
+                            placeholder="Inserisci la nuova password" required data-placeholder-en="Enter new password"
+                            data-placeholder-it="Inserisci la nuova password">
                         <i class="fas fa-eye password-toggle" id="toggle-password"></i>
                     </div>
                 </div>
                 <button type="submit" class="btn">
-                    <i class="fas fa-save"></i> <span data-translate-en="Update Password" data-translate-it="Aggiorna Password">Aggiorna Password</span>
+                    <i class="fas fa-save"></i> <span data-translate-en="Update Password"
+                        data-translate-it="Aggiorna Password">Aggiorna Password</span>
                 </button>
             </form>
 
@@ -699,12 +767,16 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
                 <div class="success-icon">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                <h1 class="success-title" data-translate-en="Password Updated!" data-translate-it="Password Aggiornata!">Password Aggiornata!</h1>
-                <p class="success-subtitle" data-translate-en="Your password has been successfully updated. You can now log in with your new password." data-translate-it="La tua password è stata aggiornata con successo. Ora puoi accedere con la nuova password.">
+                <h1 class="success-title" data-translate-en="Password Updated!" data-translate-it="Password Aggiornata!">
+                    Password Aggiornata!</h1>
+                <p class="success-subtitle"
+                    data-translate-en="Your password has been successfully updated. You can now log in with your new password."
+                    data-translate-it="La tua password è stata aggiornata con successo. Ora puoi accedere con la nuova password.">
                     La tua password è stata aggiornata con successo. Ora puoi accedere con la nuova password.
                 </p>
                 <a href="login.php" class="login-btn">
-                    <i class="fas fa-sign-in-alt"></i> <span data-translate-en="Go to Login" data-translate-it="Vai al Login">Vai al Login</span>
+                    <i class="fas fa-sign-in-alt"></i> <span data-translate-en="Go to Login"
+                        data-translate-it="Vai al Login">Vai al Login</span>
                 </a>
             </div>
         <?php endif; ?>
@@ -719,10 +791,20 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
     <img id="lingua" src="https://renadeveloper.altervista.org/bandierait.png" alt="Lingua"
         data-alt-src="https://renadeveloper.altervista.org/bandieraen.png">
 
+    <div class="language-overlay" id="language-overlay"></div>
     <div id="language-popup" class="language-popup">
         <span id="close-popup" class="close-popup">&times;</span>
-        <button class="language-btn" data-lang="it">Italiano</button>
-        <button class="language-btn" data-lang="en">English</button>
+        <h3 data-translate-en="Select language" data-translate-it="Seleziona lingua">Seleziona lingua</h3>
+
+        <button class="language-btn" data-lang="it">
+            <img src="https://renadeveloper.altervista.org/bandierait.png" alt="Italiano">
+            <span>Italiano</span>
+        </button>
+
+        <button class="language-btn" data-lang="en">
+            <img src="https://renadeveloper.altervista.org/bandieraen.png" alt="English">
+            <span>English</span>
+        </button>
     </div>
 
     <script>
@@ -732,10 +814,6 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
             document.querySelectorAll('[data-translate-it]').forEach(function (el) {
                 el.textContent = lang === 'it' ? el.getAttribute('data-translate-it') : el.getAttribute('data-translate-en');
             });
-
-    document.querySelectorAll('#form-lang').forEach(function(el) {
-        el.value = lang;
-    });
 
             document.querySelectorAll('[data-placeholder-it]').forEach(function (el) {
                 el.setAttribute('placeholder', lang === 'it' ? el.getAttribute('data-placeholder-it') : el.getAttribute('data-placeholder-en'));
@@ -750,42 +828,42 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
             flagImg.setAttribute('data-lang', lang);
         }
 
-        function showError(message) {
-            const popup = document.getElementById('error-popup');
-            popup.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-            popup.style.top = '20px';
-            setTimeout(() => {
-                popup.style.top = '-50px';
-            }, 5000);
-        }
-
-        document.getElementById('lingua').addEventListener('click', function (event) {
-            event.stopPropagation();
+        document.getElementById('lingua').addEventListener('click', function (e) {
+            e.stopPropagation();
+            document.getElementById('language-overlay').style.display = 'block';
             document.getElementById('language-popup').style.display = 'block';
         });
 
-        document.getElementById('close-popup').addEventListener('click', function () {
+        function closeLanguagePopup() {
+            document.getElementById('language-overlay').style.display = 'none';
             document.getElementById('language-popup').style.display = 'none';
-        });
+        }
 
-        document.addEventListener('click', function (event) {
-            const languagePopup = document.getElementById('language-popup');
-            if (event.target !== languagePopup && !languagePopup.contains(event.target)) {
-                languagePopup.style.display = 'none';
-            }
-        });
+        document.getElementById('close-popup').addEventListener('click', closeLanguagePopup);
+        document.getElementById('language-overlay').addEventListener('click', closeLanguagePopup);
 
-        document.querySelectorAll('.language-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                const lang = this.getAttribute('data-lang');
-                translatePage(lang);
-                document.getElementById('language-popup').style.display = 'none';
-            });
+        document.getElementById('language-popup').addEventListener('click', function (e) {
+            e.stopPropagation();
         });
 
         document.addEventListener('DOMContentLoaded', function () {
             const savedLang = localStorage.getItem('preferredLanguage') || 'it';
             translatePage(savedLang);
+
+            document.querySelectorAll('.language-btn').forEach(btn => {
+                if (btn.getAttribute('data-lang') === savedLang) {
+                    btn.classList.add('active');
+                }
+
+                btn.addEventListener('click', function () {
+                    const lang = this.getAttribute('data-lang');
+                    translatePage(lang);
+                    closeLanguagePopup();
+
+                    document.querySelectorAll('.language-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
 
             <?php if ($error): ?>
                 showError('<?php echo addslashes($error); ?>');
@@ -812,9 +890,9 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
 
         const codeInput = document.getElementById('code');
         if (codeInput) {
-            codeInput.addEventListener('input', function(e) {
+            codeInput.addEventListener('input', function (e) {
                 this.value = this.value.replace(/\D/g, '');
-                
+
                 if (this.value.length > 6) {
                     this.value = this.value.slice(0, 6);
                 }
@@ -822,4 +900,5 @@ elseif ($step === 'reset' && isset($_POST['new_password'])) {
         }
     </script>
 </body>
+
 </html>
