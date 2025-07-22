@@ -122,6 +122,7 @@ $db->close();
             justify-content: center;
             align-items: center;
             color: white;
+            cursor: url('cursore.png'), pointer;
         }
 
         .login-container {
@@ -225,19 +226,23 @@ $db->close();
         .register-link {
             display: block;
             margin-top: 20px;
-            color: #d1d5db;
-            text-decoration: none;
             font-size: 14px;
             transition: color 0.3s ease;
+            text-decoration: none;
+        }
+
+        .register-link .normal-text {
+            color: #d1d5db;
+            font-weight: normal;
+        }
+
+        .register-link .bold-text {
+            color: white;
+            font-weight: 600;
         }
 
         .register-link:hover {
-            color: white;
             text-decoration: underline;
-        }
-
-        .register-link span {
-            font-weight: 600;
             color: white;
         }
 
@@ -288,6 +293,112 @@ $db->close();
             font-size: 18px;
         }
 
+        #lingua {
+            cursor: pointer;
+            width: 30px;
+            position: absolute;
+            top: 12px;
+            right: 57px;
+            transform: translateX(50%);
+            border-radius: 20px;
+        }
+
+        .language-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+        }
+
+        .language-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -45%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        .language-popup h3 {
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .language-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 12px 20px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .language-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .language-btn.active {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: white;
+        }
+
+        .language-btn img {
+            width: 24px;
+            margin-right: 12px;
+            border-radius: 4px;
+        }
+
+        .close-popup {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 22px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .close-popup:hover {
+            color: white;
+        }
+
         @media (max-width: 600px) {
             .login-container {
                 width: 90%;
@@ -297,6 +408,11 @@ $db->close();
             body {
                 padding: 20px 0;
                 background: black;
+            }
+
+            #lingua {
+                margin-top: 30px;
+                right: 50%;
             }
         }
 
@@ -309,26 +425,38 @@ $db->close();
             transition: background-color 5000s ease-in-out 0s !important;
         }
 
-        .register-link {
-            display: block;
-            margin-top: 20px;
-            font-size: 14px;
-            transition: color 0.3s ease;
+        a,
+        button,
+        text {
+            cursor: url('cursore.png'), pointer;
         }
 
-        .register-link .normal-text {
-            color: #d1d5db;
-            font-weight: normal;
+        * {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
 
-        .register-link .bold-text {
-            color: white;
-            font-weight: 600;
+        *::-webkit-scrollbar {
+            display: none;
         }
 
-        .register-link:hover {
-            text-decoration: underline;
-            color: white;
+        *:focus {
+            outline: none;
+        }
+
+        button:focus,
+        input:focus,
+        textarea:focus {
+            outline: none;
+        }
+
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        ::selection {
+            background-color: white;
+            color: black;
         }
     </style>
 </head>
@@ -368,7 +496,7 @@ $db->close();
             <div class="form-group">
                 <label for="password">Password</label>
                 <div class="input-container">
-                    <input type="password" id="password" name="password" placeholder="La tua password" required required
+                    <input type="password" id="password" name="password" placeholder="La tua password" required
                         data-placeholder-en="Your password" data-placeholder-it="La tua password">
                     <i class="fas fa-eye password-toggle" id="toggle-password"></i>
                 </div>
@@ -378,93 +506,129 @@ $db->close();
                 </a>
             </div>
 
-            <button type="submit" class="btn" required>
+            <button type="submit" class="btn">
                 <i class="fas fa-sign-in-alt"></i> <span data-translate-en="Log In"
                     data-translate-it="Accedi">Accedi</span>
             </button>
 
             <a href="register.php" class="register-link">
                 <span class="normal-text" data-translate-it="Non hai un account?"
-                    data-translate-en="Don't you have an account?"></span>
-                <span class="bold-text" data-translate-it="Registrati" data-translate-en="Sign Up"></span>
+                    data-translate-en="Don't you have an account?">Non hai un account? </span>
+                <span class="bold-text" data-translate-it="Registrati" data-translate-en="Sign Up">Registrati</span>
             </a>
         </form>
     </div>
-    <style>
-        a,
-        button,
-        text {
-            cursor: url('cursore.png'), pointer;
-        }
 
-        body {
-            cursor: url('cursore.png'), pointer;
-        }
-
-        * {
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-
-        *::-webkit-scrollbar {
-            display: none;
-        }
-
-        *:focus {
-            outline: none;
-        }
-
-        button:focus,
-        input:focus,
-        textarea:focus {
-            outline: none;
-        }
-
-        * {
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        ::selection {
-            background-color: white;
-            color: black;
-        }
-    </style>
     <img id="lingua" src="https://renadeveloper.altervista.org/bandierait.png" alt="Lingua"
         data-alt-src="https://renadeveloper.altervista.org/bandieraen.png">
-    <script>
-        document.getElementById('lingua').addEventListener('click', function () {
-            var img = this;
-            var currentLang = img.getAttribute('data-lang') || 'it';
-            var newLang = currentLang === 'it' ? 'en' : 'it';
 
-            translatePage(newLang);
-        });
-    </script>
-    <style>
-        #lingua {
-            cursor: pointer;
-            width: 30px;
-            position: absolute;
-            top: 12px;
-            right: 57px;
-            transform: translateX(50%);
-            border-radius: 20px;
-        }
-
-        @media screen and (max-width: 600px) {
-            #lingua {
-                margin-top: 30px;
-                right: 50%;
-            }
-        }
-    </style>
+    <div class="language-overlay" id="language-overlay"></div>
     <div id="language-popup" class="language-popup">
         <span id="close-popup" class="close-popup">&times;</span>
-        <button class="language-btn" data-lang="it">Italiano</button>
-        <button class="language-btn" data-lang="en">English</button>
+        <h3 data-translate-en="Select language" data-translate-it="Seleziona lingua">Seleziona lingua</h3>
+
+        <button class="language-btn" data-lang="it">
+            <img src="https://renadeveloper.altervista.org/bandierait.png" alt="Italiano">
+            <span>Italiano</span>
+        </button>
+
+        <button class="language-btn" data-lang="en">
+            <img src="https://renadeveloper.altervista.org/bandieraen.png" alt="English">
+            <span>English</span>
+        </button>
     </div>
+
     <script>
+        let currentLang = 'it';
+
+        function translatePage(lang) {
+            currentLang = lang;
+            localStorage.setItem('preferredLanguage', lang);
+
+            document.querySelectorAll('[data-translate-it]').forEach(function (el) {
+                el.textContent = lang === 'it' ? el.getAttribute('data-translate-it') : el.getAttribute('data-translate-en');
+            });
+
+            document.querySelectorAll('[data-placeholder-it]').forEach(function (el) {
+                el.setAttribute('placeholder', lang === 'it' ? el.getAttribute('data-placeholder-it') : el.getAttribute('data-placeholder-en'));
+            });
+
+            document.getElementById('page-title').textContent = lang === 'it' ? 'Rena - Accedi a Rena ID' : 'Rena - Log In to Rena ID';
+
+            const flagImg = document.getElementById('lingua');
+            flagImg.src = lang === 'it'
+                ? 'https://renadeveloper.altervista.org/bandierait.png'
+                : 'https://renadeveloper.altervista.org/bandieraen.png';
+            flagImg.setAttribute('data-lang', lang);
+        }
+
+        function openLanguagePopup() {
+            document.getElementById('language-overlay').style.display = 'block';
+            document.getElementById('language-popup').style.display = 'block';
+        }
+
+        function closeLanguagePopup() {
+            document.getElementById('language-overlay').style.display = 'none';
+            document.getElementById('language-popup').style.display = 'none';
+        }
+
+        function showError(message) {
+            const popup = document.getElementById('error-popup');
+            popup.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            popup.style.top = '20px';
+            setTimeout(() => {
+                popup.style.top = '-50px';
+            }, 5000);
+        }
+
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('toggle-password');
+
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
+            const savedLang = localStorage.getItem('preferredLanguage') || 'it';
+            translatePage(savedLang);
+
+            document.getElementById('lingua').addEventListener('click', function (e) {
+                e.stopPropagation();
+                openLanguagePopup();
+            });
+
+            document.getElementById('close-popup').addEventListener('click', closeLanguagePopup);
+            document.getElementById('language-overlay').addEventListener('click', closeLanguagePopup);
+
+            document.getElementById('language-popup').addEventListener('click', function (e) {
+                e.stopPropagation();
+            });
+
+            document.querySelectorAll('.language-btn').forEach(function (btn) {
+                if (btn.getAttribute('data-lang') === savedLang) {
+                    btn.classList.add('active');
+                }
+
+                btn.addEventListener('click', function () {
+                    const lang = this.getAttribute('data-lang');
+                    translatePage(lang);
+                    closeLanguagePopup();
+
+                    document.querySelectorAll('.language-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            document.getElementById('toggle-password').addEventListener('click', togglePassword);
+
             const urlParams = new URLSearchParams(window.location.search);
             const redirectParam = urlParams.get('redirect');
 
@@ -487,9 +651,7 @@ $db->close();
                     .catch(error => {
                         console.error('Errore nel controllo del redirect:', error);
                     });
-            }
-
-            else if (document.referrer) {
+            } else if (document.referrer) {
                 fetch('check_redirect.php?url=' + encodeURIComponent(document.referrer))
                     .then(response => response.json())
                     .then(data => {
@@ -506,199 +668,11 @@ $db->close();
                         }
                     });
             }
-        });
 
-        document.getElementById('lingua').addEventListener('click', function (event) {
-            event.stopPropagation();
-            var languagePopup = document.getElementById('language-popup');
-            languagePopup.style.display = 'block';
-            languagePopup.style.left = '50%';
-            languagePopup.style.top = '50%';
-            languagePopup.style.transform = 'translate(-50%, -50%)';
-        });
-
-        document.getElementById('close-popup').addEventListener('click', function () {
-            document.getElementById('language-popup').style.display = 'none';
-        });
-
-        document.addEventListener('click', function (event) {
-            var languagePopup = document.getElementById('language-popup');
-            if (event.target !== languagePopup && !languagePopup.contains(event.target)) {
-                languagePopup.style.display = 'none';
-            }
-        });
-
-        document.querySelectorAll('.language-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var lang = this.getAttribute('data-lang');
-                translatePage(lang);
-                document.getElementById('language-popup').style.display = 'none';
-            });
-        });
-    </script>
-    <style>
-        .language-popup {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            text-align: center;
-        }
-
-        .language-btn {
-            margin: 20px;
-            padding: 10px 20px;
-            background-color: #ffffff;
-            color: black;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .language-popup .language-btn {
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #ffffff;
-            color: black;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            display: block;
-        }
-
-        .language-btn:hover {
-            background-color: black;
-            color: white;
-        }
-
-        .close-popup {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 24px;
-            color: white;
-            cursor: pointer;
-        }
-    </style>
-    <script>
-        function translatePage(lang) {
-            localStorage.setItem('preferredLanguage', lang);
-
-            document.querySelectorAll('[data-translate-it]').forEach(function (el) {
-                if (!el.classList.contains('forgot-password-link') && !el.classList.contains('register-link') && !el.classList.contains('normal-text') && !el.classList.contains('bold-text')) {
-                    el.textContent = lang === 'it' ? el.getAttribute('data-translate-it') : el.getAttribute('data-translate-en');
-                }
-            });
-
-            const forgotLink = document.querySelector('.forgot-password-link');
-            if (forgotLink) {
-                const iconHTML = '<i class="fas fa-key"></i> ';
-                forgotLink.innerHTML = iconHTML + (lang === 'it' ? forgotLink.getAttribute('data-translate-it') : forgotLink.getAttribute('data-translate-en'));
-            }
-
-            document.querySelectorAll('.register-link .normal-text').forEach(function (el) {
-                el.textContent = lang === 'it' ? el.getAttribute('data-translate-it') : el.getAttribute('data-translate-en');
-            });
-
-            document.querySelectorAll('.register-link .bold-text').forEach(function (el) {
-                el.textContent = lang === 'it' ? el.getAttribute('data-translate-it') : el.getAttribute('data-translate-en');
-            });
-
-            document.querySelectorAll('[data-placeholder-it]').forEach(function (el) {
-                el.setAttribute('placeholder', lang === 'it' ? el.getAttribute('data-placeholder-it') : el.getAttribute('data-placeholder-en'));
-            });
-
-            document.getElementById('page-title').textContent = lang === 'it' ? 'Rena - Accedi a Rena ID' : 'Rena - Log In to Rena ID';
-
-            const flagImg = document.getElementById('lingua');
-            flagImg.src = lang === 'it'
-                ? 'https://renadeveloper.altervista.org/bandierait.png'
-                : 'https://renadeveloper.altervista.org/bandieraen.png';
-            flagImg.setAttribute('data-lang', lang);
-        }
-
-        function showError(message) {
-            const popup = document.getElementById('error-popup');
-            popup.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-            popup.style.top = '20px';
-            setTimeout(() => {
-                popup.style.top = '-50px';
-            }, 5000);
-        }
-
-        document.getElementById('lingua').addEventListener('click', function (event) {
-            event.stopPropagation();
-            document.getElementById('language-popup').style.display = 'block';
-        });
-
-        document.getElementById('close-popup').addEventListener('click', function () {
-            document.getElementById('language-popup').style.display = 'none';
-        });
-
-        document.addEventListener('click', function (event) {
-            const languagePopup = document.getElementById('language-popup');
-            if (event.target !== languagePopup && !languagePopup.contains(event.target)) {
-                languagePopup.style.display = 'none';
-            }
-        });
-
-        document.querySelectorAll('.language-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                const lang = this.getAttribute('data-lang');
-                translatePage(lang);
-                document.getElementById('language-popup').style.display = 'none';
-            });
-        });
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const savedLang = localStorage.getItem('preferredLanguage') || 'it';
-            translatePage(savedLang);
-
-            <?php if ($error_message): ?>
+            <?php if (isset($error_message)): ?>
                 showError('<?php echo addslashes($error_message); ?>');
             <?php endif; ?>
         });
-
-        document.getElementById('toggle-password').addEventListener('click', function () {
-            const passwordInput = document.getElementById('password');
-            const toggleIcon = this;
-
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
-            }
-        });
-    </script>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectParam = urlParams.get('redirect');
-
-        if (redirectParam) {
-            let redirectInput = document.querySelector('input[name="redirect_url"]');
-            if (!redirectInput) {
-                redirectInput = document.createElement('input');
-                redirectInput.type = 'hidden';
-                redirectInput.name = 'redirect_url';
-                document.querySelector('form').appendChild(redirectInput);
-            }
-            redirectInput.value = redirectParam;
-
-            console.log('Redirect URL impostato:', redirectParam);
-        }
     </script>
 </body>
 
