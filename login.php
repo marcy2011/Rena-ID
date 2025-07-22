@@ -2,6 +2,62 @@
 session_start();
 $db = new mysqli('localhost', 'username', 'password', 'my_rena');
 
+$whitelist = include 'redirect_whitelist.php';
+
+function isAllowedRedirect($url, $whitelist)
+{
+    if (empty($url))
+        return false;
+
+    $parsed = parse_url($url);
+    $cleanUrl = ($parsed['scheme'] ?? 'https') . '://' .
+        ($parsed['host'] ?? 'rena.altervista.org') .
+        rtrim($parsed['path'] ?? '', '/');
+
+    foreach ($whitelist as $allowed) {
+        $parsedAllowed = parse_url($allowed);
+        $cleanAllowed = ($parsedAllowed['scheme'] ?? 'https') . '://' .
+            ($parsedAllowed['host'] ?? 'rena.altervista.org') .
+            rtrim($parsedAllowed['path'] ?? '', '/');
+
+        if ($cleanUrl === $cleanAllowed) {
+            return true;
+        }
+    }
+    return false;
+}
+
+if (isset($_GET['redirect']) && !empty($_GET['redirect'])) {
+    $cleanRedirect = filter_var($_GET['redirect'], FILTER_SANITIZE_URL);
+    if (isAllowedRedirect($cleanRedirect, $whitelist)) {
+        $_SESSION['redirect_after_login'] = $cleanRedirect;
+        error_log("Redirect URL impostato: " . $cleanRedirect);
+    } else {
+        error_log("Redirect non permesso: " . $cleanRedirect);
+        $_SESSION['redirect_after_login'] = 'account.php';
+    }
+} elseif (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+    $referer = filter_var($_SERVER['HTTP_REFERER'], FILTER_SANITIZE_URL);
+    if (isAllowedRedirect($referer, $whitelist)) {
+        $_SESSION['redirect_after_login'] = $referer;
+        error_log("HTTP_REFERER impostato come redirect: " . $referer);
+    } else {
+        error_log("HTTP_REFERER non permesso: " . $referer);
+        $_SESSION['redirect_after_login'] = 'account.php';
+    }
+} else {
+    $_SESSION['redirect_after_login'] = 'account.php';
+    error_log("Nessun redirect specificato, uso default");
+}
+
+if (isset($_SERVER['HTTP_REFERER'])) {
+    error_log("HTTP_REFERER: " . $_SERVER['HTTP_REFERER']);
+    if (isAllowedRedirect($_SERVER['HTTP_REFERER'], $whitelist)) {
+        $_SESSION['redirect_after_login'] = $_SERVER['HTTP_REFERER'];
+        error_log("HTTP_REFERER allowed as redirect");
+    }
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $db->real_escape_string($_POST['username']);
     $password = $_POST['password'];
@@ -14,7 +70,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
-            header('Location: account.php');
+
+            $redirect_url = 'account.php';
+
+            if (!empty($_POST['redirect_url']) && isAllowedRedirect($_POST['redirect_url'], $whitelist)) {
+                $redirect_url = $_POST['redirect_url'];
+            } elseif (!empty($_SESSION['redirect_after_login']) && isAllowedRedirect($_SESSION['redirect_after_login'], $whitelist)) {
+                $redirect_url = $_SESSION['redirect_after_login'];
+            }
+
+            unset($_SESSION['redirect_after_login']);
+
+            header('Location: ' . $redirect_url);
             exit();
         } else {
             $error_message = "Password non valida";
@@ -41,6 +108,10 @@ $db->close();
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        .hidden {
+            display: none !important;
         }
 
         body {
@@ -283,6 +354,9 @@ $db->close();
         <h1 data-translate-en="Log In to Rena ID" data-translate-it="Accedi a Rena ID">Accedi a Rena ID</h1>
 
         <form method="post" action="">
+            <input type="hidden" name="redirect_url" value="<?php
+            echo isset($_SESSION['redirect_after_login']) ? htmlspecialchars($_SESSION['redirect_after_login']) : 'account.php';
+            ?>">
             <div class="form-group">
                 <label for="username">Username</label>
                 <div class="input-container">
@@ -390,6 +464,50 @@ $db->close();
         <button class="language-btn" data-lang="en">English</button>
     </div>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectParam = urlParams.get('redirect');
+
+            if (redirectParam) {
+                fetch('check_redirect.php?url=' + encodeURIComponent(redirectParam))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.allowed) {
+                            let redirectInput = document.querySelector('input[name="redirect_url"]');
+                            if (!redirectInput) {
+                                redirectInput = document.createElement('input');
+                                redirectInput.type = 'hidden';
+                                redirectInput.name = 'redirect_url';
+                                document.querySelector('form').appendChild(redirectInput);
+                            }
+                            redirectInput.value = redirectParam;
+                            console.log('Redirect URL impostato:', redirectParam);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore nel controllo del redirect:', error);
+                    });
+            }
+
+            else if (document.referrer) {
+                fetch('check_redirect.php?url=' + encodeURIComponent(document.referrer))
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.allowed) {
+                            let redirectInput = document.querySelector('input[name="redirect_url"]');
+                            if (!redirectInput) {
+                                redirectInput = document.createElement('input');
+                                redirectInput.type = 'hidden';
+                                redirectInput.name = 'redirect_url';
+                                document.querySelector('form').appendChild(redirectInput);
+                            }
+                            redirectInput.value = document.referrer;
+                            console.log('HTTP Referer impostato come redirect:', document.referrer);
+                        }
+                    });
+            }
+        });
+
         document.getElementById('lingua').addEventListener('click', function (event) {
             event.stopPropagation();
             var languagePopup = document.getElementById('language-popup');
@@ -564,6 +682,23 @@ $db->close();
                 toggleIcon.classList.add('fa-eye');
             }
         });
+    </script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectParam = urlParams.get('redirect');
+
+        if (redirectParam) {
+            let redirectInput = document.querySelector('input[name="redirect_url"]');
+            if (!redirectInput) {
+                redirectInput = document.createElement('input');
+                redirectInput.type = 'hidden';
+                redirectInput.name = 'redirect_url';
+                document.querySelector('form').appendChild(redirectInput);
+            }
+            redirectInput.value = redirectParam;
+
+            console.log('Redirect URL impostato:', redirectParam);
+        }
     </script>
 </body>
 
