@@ -395,170 +395,199 @@ $db->close();
             }
         }
     </style>
-    <div id="language-popup" class="language-popup">
-        <span id="close-popup" class="close-popup">&times;</span>
-        <button class="language-btn" data-lang="it">Italiano</button>
-        <button class="language-btn" data-lang="en">English</button>
-    </div>
-    <script>
-        document.getElementById('lingua').addEventListener('click', function (event) {
-            event.stopPropagation();
-            var languagePopup = document.getElementById('language-popup');
-            languagePopup.style.display = 'block';
-            languagePopup.style.left = '50%';
-            languagePopup.style.top = '50%';
-            languagePopup.style.transform = 'translate(-50%, -50%)';
+<style>
+    .language-popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 300px;
+        background: rgba(0, 0, 0, 0.9);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 1000;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translate(-50%, -45%); }
+        to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+
+    .language-popup h3 {
+        color: white;
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    .language-btn {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 12px 20px;
+        margin-bottom: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .language-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .language-btn.active {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: white;
+    }
+
+    .language-btn img {
+        width: 24px;
+        margin-right: 12px;
+        border-radius: 4px;
+    }
+
+    .close-popup {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 22px;
+        cursor: pointer;
+        transition: color 0.2s ease;
+    }
+
+    .close-popup:hover {
+        color: white;
+    }
+
+    .language-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(5px);
+        z-index: 999;
+    }
+</style>
+
+<div class="language-overlay" id="language-overlay"></div>
+<div id="language-popup" class="language-popup">
+    <span id="close-popup" class="close-popup">&times;</span>
+    <h3 data-translate-en="Seleziona lingua" data-translate-it="Select language">Seleziona lingua</h3>
+    
+    <button class="language-btn" data-lang="it">
+        <img src="https://renadeveloper.altervista.org/bandierait.png" alt="Italiano">
+        <span>Italiano</span>
+    </button>
+    
+    <button class="language-btn" data-lang="en">
+        <img src="https://renadeveloper.altervista.org/bandieraen.png" alt="English">
+        <span>English</span>
+    </button>
+</div>
+
+<script>
+    function translatePage(lang) {
+        localStorage.setItem('preferredLanguage', lang);
+
+        document.querySelectorAll('[data-translate-it]').forEach(function(el) {
+            el.textContent = lang === 'it' ? el.getAttribute('data-translate-it') : el.getAttribute('data-translate-en');
         });
 
-        document.getElementById('close-popup').addEventListener('click', function () {
-            document.getElementById('language-popup').style.display = 'none';
+        document.querySelectorAll('[data-placeholder-it]').forEach(function(el) {
+            el.setAttribute('placeholder', lang === 'it' ? el.getAttribute('data-placeholder-it') : el.getAttribute('data-placeholder-en'));
         });
 
-        document.addEventListener('click', function (event) {
-            var languagePopup = document.getElementById('language-popup');
-            if (event.target !== languagePopup && !languagePopup.contains(event.target)) {
-                languagePopup.style.display = 'none';
+        document.getElementById('page-title').textContent = lang === 'it' ? 'Rena - Crea Rena ID' : 'Rena - Create Rena ID';
+        const flagImg = document.getElementById('lingua');
+        flagImg.src = lang === 'it' 
+            ? 'https://renadeveloper.altervista.org/bandierait.png'
+            : 'https://renadeveloper.altervista.org/bandieraen.png';
+        flagImg.setAttribute('data-lang', lang);
+    }
+
+    document.getElementById('lingua').addEventListener('click', function(e) {
+        e.stopPropagation();
+        document.getElementById('language-overlay').style.display = 'block';
+        document.getElementById('language-popup').style.display = 'block';
+    });
+
+    function closeLanguagePopup() {
+        document.getElementById('language-overlay').style.display = 'none';
+        document.getElementById('language-popup').style.display = 'none';
+    }
+
+    document.getElementById('close-popup').addEventListener('click', closeLanguagePopup);
+    document.getElementById('language-overlay').addEventListener('click', closeLanguagePopup);
+
+    document.getElementById('language-popup').addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    function showError(message) {
+        const popup = document.getElementById('error-popup');
+        popup.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+        popup.style.top = '20px';
+        setTimeout(() => {
+            popup.style.top = '-50px';
+        }, 5000);
+    }
+
+    document.getElementById('toggle-password').addEventListener('click', function() {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = this;
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const savedLang = localStorage.getItem('preferredLanguage') || 'it';
+        translatePage(savedLang);
+
+        document.querySelectorAll('.language-btn').forEach(btn => {
+            if (btn.getAttribute('data-lang') === savedLang) {
+                btn.classList.add('active');
             }
-        });
-
-        document.querySelectorAll('.language-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var lang = this.getAttribute('data-lang');
-                translatePage(lang);
-                document.getElementById('language-popup').style.display = 'none';
-            });
-        });
-    </script>
-    <style>
-        .language-popup {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(5px);
-            z-index: 1000;
-            text-align: center;
-        }
-
-        .language-btn {
-            margin: 20px;
-            padding: 10px 20px;
-            background-color: #ffffff;
-            color: black;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease;
-        }
-
-        .language-popup .language-btn {
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #ffffff;
-            color: black;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            display: block;
-        }
-
-        .language-btn:hover {
-            background-color: black;
-            color: white;
-        }
-
-        .close-popup {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 24px;
-            color: white;
-            cursor: pointer;
-        }
-    </style>
-    <script>
-        function translatePage(lang) {
-            localStorage.setItem('preferredLanguage', lang);
-
-            document.querySelectorAll('[data-translate-it]').forEach(function (el) {
-                el.textContent = lang === 'it' ? el.getAttribute('data-translate-it') : el.getAttribute('data-translate-en');
-            });
-
-            document.querySelectorAll('[data-placeholder-it]').forEach(function (el) {
-                el.setAttribute('placeholder', lang === 'it' ? el.getAttribute('data-placeholder-it') : el.getAttribute('data-placeholder-en'));
-            });
-
-            document.getElementById('page-title').textContent = lang === 'it' ? 'Rena - Crea Rena ID' : 'Rena - Create Rena ID';
-            const flagImg = document.getElementById('lingua');
-            flagImg.src = lang === 'it'
-                ? 'https://renadeveloper.altervista.org/bandierait.png'
-                : 'https://renadeveloper.altervista.org/bandieraen.png';
-            flagImg.setAttribute('data-lang', lang);
-        }
-
-        function showError(message) {
-            const popup = document.getElementById('error-popup');
-            popup.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
-            popup.style.top = '20px';
-            setTimeout(() => {
-                popup.style.top = '-50px';
-            }, 5000);
-        }
-
-        document.getElementById('lingua').addEventListener('click', function (event) {
-            event.stopPropagation();
-            document.getElementById('language-popup').style.display = 'block';
-        });
-
-        document.getElementById('close-popup').addEventListener('click', function () {
-            document.getElementById('language-popup').style.display = 'none';
-        });
-
-        document.addEventListener('click', function (event) {
-            const languagePopup = document.getElementById('language-popup');
-            if (event.target !== languagePopup && !languagePopup.contains(event.target)) {
-                languagePopup.style.display = 'none';
-            }
-        });
-
-        document.querySelectorAll('.language-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
+            
+            btn.addEventListener('click', function() {
                 const lang = this.getAttribute('data-lang');
                 translatePage(lang);
-                document.getElementById('language-popup').style.display = 'none';
+                closeLanguagePopup();
+                
+                document.querySelectorAll('.language-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
             });
         });
 
-        document.addEventListener('DOMContentLoaded', function () {
-            const savedLang = localStorage.getItem('preferredLanguage') || 'it';
-            translatePage(savedLang);
-
-            <?php if ($error_message): ?>
-                showError('<?php echo addslashes($error_message); ?>');
-            <?php endif; ?>
-        });
-        
-document.getElementById('toggle-password').addEventListener('click', function() {
-    const passwordInput = document.getElementById('password');
-    const toggleIcon = this;
-    
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        toggleIcon.classList.remove('fa-eye');
-        toggleIcon.classList.add('fa-eye-slash');
-    } else {
-        passwordInput.type = 'password';
-        toggleIcon.classList.remove('fa-eye-slash');
-        toggleIcon.classList.add('fa-eye');
-    }
-});
-    </script>
+        <?php if ($error_message): ?>
+            showError('<?php echo addslashes($error_message); ?>');
+        <?php endif; ?>
+    });
+</script>
 </body>
 
 </html>
