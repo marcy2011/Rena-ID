@@ -500,9 +500,10 @@ $db->close();
                         data-placeholder-en="Your password" data-placeholder-it="La tua password">
                     <i class="fas fa-eye password-toggle" id="toggle-password"></i>
                 </div>
-                <a href="password-forgot.php" class="forgot-password-link" data-translate-en="Forgot your password?"
-                    data-translate-it="Password dimenticata?">
-                    <i class="fas fa-key"></i> Password dimenticata?
+                <a href="password-forgot.php" class="forgot-password-link">
+                    <i class="fas fa-key"></i>
+                    <span data-translate-en="Forgot your password?" data-translate-it="Password dimenticata?">Password
+                        dimenticata?</span>
                 </a>
             </div>
 
