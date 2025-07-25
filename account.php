@@ -894,6 +894,7 @@ $user_data = $result->fetch_assoc();
     @media (max-width: 768px) {
       .container {
         margin: 10px;
+        margin-top: 60px;
       }
 
       .header {
@@ -1611,139 +1612,221 @@ $user_data = $result->fetch_assoc();
   </style>
   <img id="lingua" src="https://renadeveloper.altervista.org/bandierait.png" alt="Lingua"
     data-alt-src="https://renadeveloper.altervista.org/bandieraen.png">
-  <div id="language-popup" class="language-popup">
+<div id="error-popup"></div>
+
+<div class="language-overlay" id="language-overlay"></div>
+<div id="language-popup" class="language-popup">
     <span id="close-popup" class="close-popup">&times;</span>
-    <button class="language-btn" data-lang="it">Italiano</button>
-    <button class="language-btn" data-lang="en">English</button>
-  </div>
+    <h3 data-translate-en="Seleziona lingua" data-translate-it="Select language">Seleziona lingua</h3>
+    
+    <button class="language-btn" data-lang="it">
+        <img src="https://renadeveloper.altervista.org/bandierait.png" alt="Italiano">
+        <span>Italiano</span>
+    </button>
+    
+    <button class="language-btn" data-lang="en">
+        <img src="https://renadeveloper.altervista.org/bandieraen.png" alt="English">
+        <span>English</span>
+    </button>
+</div>
   <style>
-    .language-popup {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(5px);
-      z-index: 1000;
-      text-align: center;
-    }
+.language-popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+}
 
-    .language-btn {
-      margin: 20px auto;
-      padding: 10px 20px;
-      background-color: #ffffff;
-      color: black;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: all 0.3s ease;
-      display: block;
-    }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, -45%); }
+    to { opacity: 1; transform: translate(-50%, -50%); }
+}
 
-    .language-btn:hover {
-      background-color: black;
-      color: white;
-    }
+.language-popup h3 {
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+}
 
-    .close-popup {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 24px;
-      color: white;
-      cursor: pointer;
-    }
+.language-btn {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 12px 20px;
+    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
 
+.language-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.language-btn.active {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: white;
+}
+
+.language-btn img {
+    width: 24px;
+    margin-right: 12px;
+    border-radius: 4px;
+}
+
+.close-popup {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 22px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-popup:hover {
+    color: white;
+}
+
+.language-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    z-index: 999;
+}
+
+#lingua {
+    cursor: pointer;
+    width: 30px;
+    position: absolute;
+    top: 12px;
+    right: 57px;
+    transform: translateX(50%);
+    border-radius: 20px;
+    z-index: 1000;
+}
+
+@media screen and (max-width: 600px) {
     #lingua {
-      cursor: pointer;
-      width: 30px;
-      position: absolute;
-      top: 12px;
-      right: 57px;
-      transform: translateX(50%);
-      border-radius: 20px;
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        margin-top: 60px;
-      }
-
-      #lingua {
         margin-top: 30px;
         right: 50%;
-        transform: translateX(50%);
-      }
     }
+}
   </style>
   <script>
-    document.getElementById('lingua').addEventListener('click', function () {
-      document.getElementById('language-popup').style.display = 'block';
+document.getElementById('lingua').addEventListener('click', function(e) {
+    e.stopPropagation();
+    document.getElementById('language-overlay').style.display = 'block';
+    document.getElementById('language-popup').style.display = 'block';
+});
+
+function closeLanguagePopup() {
+    document.getElementById('language-overlay').style.display = 'none';
+    document.getElementById('language-popup').style.display = 'none';
+}
+
+document.getElementById('close-popup').addEventListener('click', closeLanguagePopup);
+document.getElementById('language-overlay').addEventListener('click', closeLanguagePopup);
+
+document.getElementById('language-popup').addEventListener('click', function(e) {
+    e.stopPropagation();
+});
+
+function translatePage(lang) {
+    localStorage.setItem('preferredLanguage', lang);
+    
+    document.querySelectorAll('[data-translate-it]').forEach(function(el) {
+        el.textContent = el.getAttribute(`data-translate-${lang}`);
     });
-
-    document.getElementById('close-popup').addEventListener('click', function () {
-      document.getElementById('language-popup').style.display = 'none';
+    
+    document.querySelectorAll('[data-placeholder-it]').forEach(function(el) {
+        el.placeholder = el.getAttribute(`data-placeholder-${lang}`);
     });
-
-    document.querySelectorAll('.language-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const lang = this.getAttribute('data-lang');
-        translatePage(lang);
-        document.getElementById('language-popup').style.display = 'none';
-      });
-    });
-
-    function translatePage(lang) {
-      localStorage.setItem('preferredLanguage', lang);
-
-      document.querySelectorAll('[data-translate-it], [data-translate-en]').forEach(el => {
-        if (el.querySelector('i') || el.classList.contains('section-icon')) {
-          const textSpan = el.querySelector('span');
-          if (textSpan) {
-            textSpan.textContent = lang === 'it'
-              ? el.getAttribute('data-translate-it')
-              : el.getAttribute('data-translate-en');
-          }
-        }
-        else {
-          el.textContent = lang === 'it'
-            ? el.getAttribute('data-translate-it')
-            : el.getAttribute('data-translate-en');
-        }
-      });
-
-      document.querySelectorAll('[data-placeholder-it]').forEach(el => {
-        el.placeholder = lang === 'it'
-          ? el.getAttribute('data-placeholder-it')
-          : el.getAttribute('data-placeholder-en');
-      });
-
-      const flagImg = document.getElementById('lingua');
-      flagImg.src = lang === 'it'
+    
+    const flagImg = document.getElementById('lingua');
+    flagImg.src = lang === 'it' 
         ? 'https://renadeveloper.altervista.org/bandierait.png'
         : 'https://renadeveloper.altervista.org/bandieraen.png';
-      flagImg.alt = lang === 'it' ? 'Bandiera Italiana' : 'English Flag';
-
-      document.title = lang === 'it'
-        ? 'Gestione Account - My Rena ID'
+    flagImg.alt = lang === 'it' ? 'Bandiera Italiana' : 'English Flag';
+    
+    document.title = lang === 'it' 
+        ? 'Gestione Account - My Rena ID' 
         : 'Account Management - My Rena ID';
-    }
+}
 
-    function loadSavedLanguage() {
-      const savedLang = localStorage.getItem('preferredLanguage') || 'it';
-      translatePage(savedLang);
-    }
-
-    document.addEventListener('DOMContentLoaded', loadSavedLanguage);
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') {
-        document.getElementById('language-popup').style.display = 'none';
-      }
+document.querySelectorAll('.language-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const lang = this.getAttribute('data-lang');
+        translatePage(lang);
+        closeLanguagePopup();
+        
+        document.querySelectorAll('.language-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
     });
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const savedLang = localStorage.getItem('preferredLanguage') || 'it';
+    translatePage(savedLang);
+    
+    document.querySelector(`.language-btn[data-lang="${savedLang}"]`).classList.add('active');
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeLanguagePopup();
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const savedLang = localStorage.getItem('preferredLanguage') || 'it';
+    translatePage(savedLang);
+
+    document.querySelectorAll('.language-btn').forEach(btn => {
+        if (btn.getAttribute('data-lang') === savedLang) {
+            btn.classList.add('active');
+        }
+        
+        btn.addEventListener('click', function() {
+            const lang = this.getAttribute('data-lang');
+            translatePage(lang);
+            closeLanguagePopup();
+            
+            document.querySelectorAll('.language-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeLanguagePopup();
+    }
+});
   </script>
 </body>
 
