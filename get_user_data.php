@@ -2,6 +2,30 @@
 ob_start();
 
 session_start();
+header('Content-Type: application/javascript');
+
+$userId = $data['user_id'];
+
+foreach ($users as $user) {
+    if ($user['id'] == $userId) {
+        echo json_encode($user);
+        exit;
+    }
+}
+
+echo json_encode(['error' => 'Utente non trovato']);
+
+$response = [
+    'logged_in' => isset($_SESSION['user_id']),
+    'username' => $_SESSION['username'] ?? null,
+    'profile_pic' => $_SESSION['profile_pic'] ?? null
+];
+
+if (isset($_GET['callback'])) {
+    echo $_GET['callback'] . '(' . json_encode($response) . ')';
+} else {
+    echo json_encode($response);
+}
 
 ob_clean();
 
