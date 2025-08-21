@@ -19,7 +19,7 @@ $token = $_GET['token'];
 if (isset($_SESSION['cross_domain_token']) && $_SESSION['cross_domain_token'] === $token) {
   $host = "localhost";
   $user = "rena";
-  $pass = "pXUbBf42ySR6";
+  $pass = "PASS";
   $dbname = "my_rena";
 
   $conn = new mysqli($host, $user, $pass, $dbname);
