@@ -71,18 +71,82 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
 
-            $redirect_url = 'account.php';
-
-            if (!empty($_POST['redirect_url']) && isAllowedRedirect($_POST['redirect_url'], $whitelist)) {
-                $redirect_url = $_POST['redirect_url'];
-            } elseif (!empty($_SESSION['redirect_after_login']) && isAllowedRedirect($_SESSION['redirect_after_login'], $whitelist)) {
-                $redirect_url = $_SESSION['redirect_after_login'];
+            $is_external_domain = false;
+            $external_domain = '';
+            
+            if (isset($_GET['external_domain']) && !empty($_GET['external_domain'])) {
+                $external_domain = filter_var($_GET['external_domain'], FILTER_SANITIZE_URL);
+                $is_external_domain = true;
             }
-
-            unset($_SESSION['redirect_after_login']);
-
-            header('Location: ' . $redirect_url);
-            exit();
+            else if (isset($_SERVER['HTTP_REFERER']) && !empty($_SERVER['HTTP_REFERER'])) {
+                $referer = parse_url($_SERVER['HTTP_REFERER']);
+                $current_domain = parse_url('https://' . $_SERVER['HTTP_HOST']);
+                
+                if ($referer['host'] !== $current_domain['host']) {
+                    $external_domain = $referer['scheme'] . '://' . $referer['host'];
+                    $is_external_domain = true;
+                }
+            }
+            
+if ($is_external_domain && !empty($external_domain)) {
+    $token = bin2hex(random_bytes(32));
+    $_SESSION['cross_domain_token'] = $token;
+    
+    $profile_photo = null;
+    $profile_sql = "SELECT profile_photo FROM users WHERE id = " . $user['id'];
+    $profile_result = $db->query($profile_sql);
+    if ($profile_result->num_rows > 0) {
+        $profile_data = $profile_result->fetch_assoc();
+if (!empty($profile_data['profile_photo'])) {
+    if (filter_var($profile_data['profile_photo'], FILTER_VALIDATE_URL)) {
+        $profile_photo = $profile_data['profile_photo'];
+    } 
+    else if (strpos($profile_data['profile_photo'], 'uploads/profile_photos/') !== false) {
+        if (strpos($profile_data['profile_photo'], 'https://') === 0 || strpos($profile_data['profile_photo'], 'http://') === 0) {
+            $profile_photo = $profile_data['profile_photo'];
+        } else {
+            $relative_path = str_replace('uploads/profile_photos/', '', $profile_data['profile_photo']);
+            $profile_photo = 'https://rena.altervista.org/uploads/profile_photos/' . $relative_path;
+        }
+    }
+    else {
+        $profile_photo = 'https://rena.altervista.org/uploads/profile_photos/' . $user['id'] . '/' . $profile_data['profile_photo'];
+    }
+}
+    }
+    
+    $user_data = [
+        'status' => 'success',
+        'user_id' => $user['id'],
+        'username' => $user['username'],
+        'profile_photo' => $profile_photo,
+        'token' => $token
+    ];
+                
+                echo "<script>
+                    window.onload = function() {
+                        if (window.opener) {
+                            window.opener.postMessage(" . json_encode($user_data) . ", '" . $external_domain . "');
+                            window.close();
+                        } else {
+                            window.location.href = '" . $external_domain . "?token=' + encodeURIComponent('" . $token . "') + 
+                                '&user_id=' + encodeURIComponent('" . $user['id'] . "') + 
+                                '&username=' + encodeURIComponent('" . $user['username'] . "');
+                        }
+                    }
+                </script>";
+                exit();
+            } else {
+                $redirect_url = 'account.php';
+                if (!empty($_POST['redirect_url']) && isAllowedRedirect($_POST['redirect_url'], $whitelist)) {
+                    $redirect_url = $_POST['redirect_url'];
+                } elseif (!empty($_SESSION['redirect_after_login']) && isAllowedRedirect($_SESSION['redirect_after_login'], $whitelist)) {
+                    $redirect_url = $_SESSION['redirect_after_login'];
+                }
+                unset($_SESSION['redirect_after_login']);
+                header('Location: ' . $redirect_url);
+                exit();
+            }
         } else {
             $error_message = "Password non valida";
         }
