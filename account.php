@@ -7,13 +7,13 @@ $email_not_set = "Email non impostata";
 $db = new mysqli('localhost', 'username', 'password', 'my_rena');
 
 if ($db->connect_error) {
-    error_log("Database connection error: " . $db->connect_error);
-    $error = "Errore di connessione al database. Riprova più tardi.";
+  error_log("Database connection error: " . $db->connect_error);
+  $error = "Errore di connessione al database. Riprova più tardi.";
 }
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
+  header("Location: login.php");
+  exit();
 }
 
 $user_id = $_SESSION['user_id'];
@@ -21,243 +21,254 @@ $message = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['update_profile'])) {
-        $new_username = trim($_POST['username']);
-        $new_email = trim($_POST['email']);
-        $current_password = $_POST['current_password'];
-        $new_password = $_POST['new_password'] ?? '';
-        $confirm_password = $_POST['confirm_password'] ?? '';
+  if (isset($_POST['update_profile'])) {
+    $new_username = trim($_POST['username']);
+    $new_email = trim($_POST['email']);
+    $current_password = $_POST['current_password'];
+    $new_password = $_POST['new_password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
 
-        $sql = "SELECT password FROM users WHERE id = ?";
+    $sql = "SELECT password FROM users WHERE id = ?";
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+
+    if (password_verify($current_password, $user['password'])) {
+      $updates = [];
+      $types = "";
+      $values = [];
+      $update_username = false;
+
+      if ($new_username !== $_SESSION['username']) {
+        $check_sql = "SELECT id FROM users WHERE username = ? AND id != ?";
+        $check_stmt = $db->prepare($check_sql);
+        $check_stmt->bind_param("si", $new_username, $user_id);
+        $check_stmt->execute();
+        $check_result = $check_stmt->get_result();
+
+        if ($check_result->num_rows > 0) {
+          $error = "Username già in uso!";
+        } else {
+          $updates[] = "username = ?";
+          $types .= "s";
+          $values[] = $new_username;
+          $update_username = true;
+        }
+      }
+
+      if (!empty($new_email)) {
+        $updates[] = "email = ?";
+        $types .= "s";
+        $values[] = $new_email;
+      }
+
+      if (!empty($new_password)) {
+        if ($new_password === $confirm_password) {
+          if (strlen($new_password) >= 6) {
+            $updates[] = "password = ?";
+            $types .= "s";
+            $values[] = password_hash($new_password, PASSWORD_DEFAULT);
+          } else {
+            $error = "La password deve essere di almeno 6 caratteri!";
+          }
+        } else {
+          $error = "Le password non coincidono!";
+        }
+      }
+
+      if (!empty($updates) && empty($error)) {
+        $sql = "UPDATE users SET " . implode(', ', $updates) . " WHERE id = ?";
+        $types .= "i";
+        $values[] = $user_id;
+
         $stmt = $db->prepare($sql);
-        $stmt->bind_param("i", $user_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
+        $stmt->bind_param($types, ...$values);
 
-        if (password_verify($current_password, $user['password'])) {
-            $updates = [];
-            $types = "";
-            $values = [];
-            $update_username = false;
+        if ($stmt->execute()) {
+          $message = "Profilo aggiornato con successo!";
+          if ($update_username) {
+            $_SESSION['username'] = $new_username;
+          }
+        } else {
+          $error = "Errore nell'aggiornamento del profilo: " . $stmt->error;
+        }
+      }
+    } else {
+      $error = "Password attuale non corretta!";
+    }
+  }
 
-            if ($new_username !== $_SESSION['username']) {
-                $check_sql = "SELECT id FROM users WHERE username = ? AND id != ?";
-                $check_stmt = $db->prepare($check_sql);
-                $check_stmt->bind_param("si", $new_username, $user_id);
-                $check_stmt->execute();
-                $check_result = $check_stmt->get_result();
+  if (isset($_POST['upload_photo']) && isset($_FILES['profile_photo'])) {
+    $target_dir = "uploads/profile_photos/{$user_id}/";
 
-                if ($check_result->num_rows > 0) {
-                    $error = "Username già in uso!";
-                } else {
-                    $updates[] = "username = ?";
-                    $types .= "s";
-                    $values[] = $new_username;
-                    $update_username = true;
+    if (!file_exists($target_dir)) {
+      if (!mkdir($target_dir, 0755, true)) {
+        $error = "Impossibile creare la cartella di upload. Contatta l'amministratore.";
+      }
+    }
+
+    if (empty($error)) {
+      if (isset($_FILES["profile_photo"]["tmp_name"]) && $_FILES["profile_photo"]["error"] === UPLOAD_ERR_OK) {
+        $check = getimagesize($_FILES["profile_photo"]["tmp_name"]);
+        if ($check !== false) {
+          $mime_type = $check['mime'];
+          $allowed_mime_types = [
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/gif' => 'gif'
+          ];
+
+          if (array_key_exists($mime_type, $allowed_mime_types)) {
+            $safe_extension = $allowed_mime_types[$mime_type];
+
+            $version = 1;
+            $existing_files = glob($target_dir . "*.{$safe_extension}");
+            if (!empty($existing_files)) {
+              $versions = [];
+              foreach ($existing_files as $file) {
+                if (preg_match('/v(\d+)\.' . $safe_extension . '$/', $file, $matches)) {
+                  $versions[] = (int) $matches[1];
                 }
+              }
+              if (!empty($versions)) {
+                $version = max($versions) + 1;
+              }
             }
 
-            if (!empty($new_email)) {
-                $updates[] = "email = ?";
-                $types .= "s";
-                $values[] = $new_email;
-            }
+            $target_file = $target_dir . "v{$version}.{$safe_extension}";
 
-            if (!empty($new_password)) {
-                if ($new_password === $confirm_password) {
-                    if (strlen($new_password) >= 6) {
-                        $updates[] = "password = ?";
-                        $types .= "s";
-                        $values[] = password_hash($new_password, PASSWORD_DEFAULT);
-                    } else {
-                        $error = "La password deve essere di almeno 6 caratteri!";
-                    }
-                } else {
-                    $error = "Le password non coincidono!";
-                }
-            }
-
-            if (!empty($updates) && empty($error)) {
-                $sql = "UPDATE users SET " . implode(', ', $updates) . " WHERE id = ?";
-                $types .= "i";
-                $values[] = $user_id;
-
+            if ($_FILES["profile_photo"]["size"] <= 5000000) {
+              if (move_uploaded_file($_FILES["profile_photo"]["tmp_name"], $target_file)) {
+                $relative_file_path = "uploads/profile_photos/{$user_id}/v{$version}.{$safe_extension}";
+                $sql = "UPDATE users SET profile_photo = ? WHERE id = ?";
                 $stmt = $db->prepare($sql);
-                $stmt->bind_param($types, ...$values);
+                $stmt->bind_param("si", $relative_file_path, $user_id);
 
                 if ($stmt->execute()) {
-                    $message = "Profilo aggiornato con successo!";
-                    if ($update_username) {
-                        $_SESSION['username'] = $new_username;
-                    }
+                  $message = "Foto profilo aggiornata con successo!";
+                  $user_data['profile_photo'] = $target_file;
                 } else {
-                    $error = "Errore nell'aggiornamento del profilo: " . $stmt->error;
+                  $error = "Errore nel salvataggio della foto nel database: " . $stmt->error;
                 }
-            }
-        } else {
-            $error = "Password attuale non corretta!";
-        }
-    }
-
-    if (isset($_POST['upload_photo']) && isset($_FILES['profile_photo'])) {
-        $target_dir = "uploads/profile_photos/{$user_id}/";
-
-        if (!file_exists($target_dir)) {
-            if (!mkdir($target_dir, 0755, true)) {
-                $error = "Impossibile creare la cartella di upload. Contatta l'amministratore.";
-            }
-        }
-
-        if (empty($error)) {
-            if (isset($_FILES["profile_photo"]["tmp_name"]) && $_FILES["profile_photo"]["error"] === UPLOAD_ERR_OK) {
-                $check = getimagesize($_FILES["profile_photo"]["tmp_name"]);
-                if ($check !== false) {
-                    $mime_type = $check['mime'];
-                    $allowed_mime_types = [
-                        'image/jpeg' => 'jpg',
-                        'image/png' => 'png',
-                        'image/gif' => 'gif'
-                    ];
-
-                    if (array_key_exists($mime_type, $allowed_mime_types)) {
-                        $safe_extension = $allowed_mime_types[$mime_type];
-
-                        $version = 1;
-                        $existing_files = glob($target_dir . "*.{$safe_extension}");
-                        if (!empty($existing_files)) {
-                            $versions = [];
-                            foreach ($existing_files as $file) {
-                                if (preg_match('/v(\d+)\.' . $safe_extension . '$/', $file, $matches)) {
-                                    $versions[] = (int) $matches[1];
-                                }
-                            }
-                            if (!empty($versions)) {
-                                $version = max($versions) + 1;
-                            }
-                        }
-
-                        $target_file = $target_dir . "v{$version}.{$safe_extension}";
-
-                        if ($_FILES["profile_photo"]["size"] <= 5000000) {
-                            if (move_uploaded_file($_FILES["profile_photo"]["tmp_name"], $target_file)) {
-                                $base_path = "uploads/profile_photos/{$user_id}/";
-                                $sql = "UPDATE users SET profile_photo = ? WHERE id = ?";
-                                $stmt = $db->prepare($sql);
-                                $stmt->bind_param("si", $base_path, $user_id);
-
-                                if ($stmt->execute()) {
-                                    $message = "Foto profilo aggiornata con successo!";
-                                    $user_data['profile_photo'] = $target_file;
-                                } else {
-                                    $error = "Errore nel salvataggio della foto nel database: " . $stmt->error;
-                                }
-                            } else {
-                                $error = "Errore nel caricamento della foto! Codice errore: " . $_FILES["profile_photo"]["error"];
-                            }
-                        } else {
-                            $error = "Il file è troppo grande! Max 5MB.";
-                        }
-                    } else {
-                        $error = "Tipo di file non consentito. Solo JPG, PNG e GIF sono ammessi.";
-                    }
-                } else {
-                    $error = "Il file non è un'immagine valida!";
-                }
+              } else {
+                $error = "Errore nel caricamento della foto! Codice errore: " . $_FILES["profile_photo"]["error"];
+              }
             } else {
-                $error_code = $_FILES["profile_photo"]["error"];
-                switch ($error_code) {
-                    case UPLOAD_ERR_INI_SIZE:
-                        $error = "Il file caricato supera la direttiva upload_max_filesize in php.ini.";
-                        break;
-                    case UPLOAD_ERR_FORM_SIZE:
-                        $error = "Il file caricato supera la direttiva MAX_FILE_SIZE specificata nel modulo HTML.";
-                        break;
-                    case UPLOAD_ERR_PARTIAL:
-                        $error = "Il file caricato è stato caricato solo parzialmente.";
-                        break;
-                    case UPLOAD_ERR_NO_FILE:
-                        $error = "Nessun file è stato selezionato per il caricamento.";
-                        break;
-                    case UPLOAD_ERR_NO_TMP_DIR:
-                        $error = "Manca una cartella temporanea per il caricamento.";
-                        break;
-                    case UPLOAD_ERR_CANT_WRITE:
-                        $error = "Impossibile scrivere il file su disco. Controlla i permessi della cartella temporanea.";
-                        break;
-                    case UPLOAD_ERR_EXTENSION:
-                        $error = "Un'estensione PHP ha interrotto il caricamento del file.";
-                        break;
-                    default:
-                        $error = "Errore sconosciuto nel caricamento del file: " . $error_code;
-                        break;
-                }
+              $error = "Il file è troppo grande! Max 5MB.";
             }
+          } else {
+            $error = "Tipo di file non consentito. Solo JPG, PNG e GIF sono ammessi.";
+          }
+        } else {
+          $error = "Il file non è un'immagine valida!";
         }
+      } else {
+        $error_code = $_FILES["profile_photo"]["error"];
+        switch ($error_code) {
+          case UPLOAD_ERR_INI_SIZE:
+            $error = "Il file caricato supera la direttiva upload_max_filesize in php.ini.";
+            break;
+          case UPLOAD_ERR_FORM_SIZE:
+            $error = "Il file caricato supera la direttiva MAX_FILE_SIZE specificata nel modulo HTML.";
+            break;
+          case UPLOAD_ERR_PARTIAL:
+            $error = "Il file caricato è stato caricato solo parzialmente.";
+            break;
+          case UPLOAD_ERR_NO_FILE:
+            $error = "Nessun file è stato selezionato per il caricamento.";
+            break;
+          case UPLOAD_ERR_NO_TMP_DIR:
+            $error = "Manca una cartella temporanea per il caricamento.";
+            break;
+          case UPLOAD_ERR_CANT_WRITE:
+            $error = "Impossibile scrivere il file su disco. Controlla i permessi della cartella temporanea.";
+            break;
+          case UPLOAD_ERR_EXTENSION:
+            $error = "Un'estensione PHP ha interrotto il caricamento del file.";
+            break;
+          default:
+            $error = "Errore sconosciuto nel caricamento del file: " . $error_code;
+            break;
+        }
+      }
+    }
+  }
+
+  function compressImage($source, $quality = 75)
+  {
+    $info = getimagesize($source);
+    if ($info['mime'] == 'image/jpeg') {
+      $image = imagecreatefromjpeg($source);
+      imagejpeg($image, $source, $quality);
+    } elseif ($info['mime'] == 'image/png') {
+      $image = imagecreatefrompng($source);
+      imagepng($image, $source, round(9 * $quality / 100));
+    }
+    imagedestroy($image);
+  }
+
+  compressImage($target_file);
+
+  function convertToWebP($source)
+  {
+    $output = str_replace(['.jpg', '.jpeg', '.png'], '.webp', $source);
+    $info = getimagesize($source);
+
+    if ($info['mime'] == 'image/jpeg') {
+      $image = imagecreatefromjpeg($source);
+    } elseif ($info['mime'] == 'image/png') {
+      $image = imagecreatefrompng($source);
+      imagepalettetotruecolor($image);
+      imagealphablending($image, true);
+      imagesavealpha($image, true);
     }
 
-    function compressImage($source, $quality = 75)
-    {
-        $info = getimagesize($source);
-        if ($info['mime'] == 'image/jpeg') {
-            $image = imagecreatefromjpeg($source);
-            imagejpeg($image, $source, $quality);
-        } elseif ($info['mime'] == 'image/png') {
-            $image = imagecreatefrompng($source);
-            imagepng($image, $source, round(9 * $quality / 100));
-        }
-        imagedestroy($image);
-    }
+    imagewebp($image, $output, 80);
+    imagedestroy($image);
+    return $output;
+  }
 
-    compressImage($target_file);
+  $target_file = convertToWebP($target_file);
 
-    function convertToWebP($source)
-    {
-        $output = str_replace(['.jpg', '.jpeg', '.png'], '.webp', $source);
-        $info = getimagesize($source);
-
-        if ($info['mime'] == 'image/jpeg') {
-            $image = imagecreatefromjpeg($source);
-        } elseif ($info['mime'] == 'image/png') {
-            $image = imagecreatefrompng($source);
-            imagepalettetotruecolor($image);
-            imagealphablending($image, true);
-            imagesavealpha($image, true);
-        }
-
-        imagewebp($image, $output, 80);
-        imagedestroy($image);
-        return $output;
-    }
-
-    $target_file = convertToWebP($target_file);
-
-    header("Cache-Control: public, max-age=604800, immutable");
-    header("Expires: " . gmdate('D, d M Y H:i:s', time() + 604800) . ' GMT');
+  header("Cache-Control: public, max-age=604800, immutable");
+  header("Expires: " . gmdate('D, d M Y H:i:s', time() + 604800) . ' GMT');
 }
 
 function getLatestProfilePhoto($user_id, $db)
 {
-    $base_path = "uploads/profile_photos/{$user_id}/";
+  $sql = "SELECT profile_photo FROM users WHERE id = ?";
+  $stmt = $db->prepare($sql);
+  $stmt->bind_param("i", $user_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  $user = $result->fetch_assoc();
 
-    if (!file_exists($base_path)) {
-        return null;
-    }
+  if (!empty($user['profile_photo']) && strpos($user['profile_photo'], 'v') !== false) {
+    return $user['profile_photo'];
+  }
 
-    $files = glob($base_path . "v*.*");
-    if (empty($files)) {
-        return null;
-    }
+  $base_path = "uploads/profile_photos/{$user_id}/";
 
-    usort($files, function ($a, $b) {
-        preg_match('/v(\d+)\./', $a, $a_matches);
-        preg_match('/v(\d+)\./', $b, $b_matches);
-        $a_ver = (int) ($a_matches[1] ?? 0);
-        $b_ver = (int) ($b_matches[1] ?? 0);
-        return $b_ver - $a_ver;
-    });
+  if (!file_exists($base_path)) {
+    return null;
+  }
 
-    return $files[0];
+  $files = glob($base_path . "v*.*");
+  if (empty($files)) {
+    return null;
+  }
+
+  usort($files, function ($a, $b) {
+    preg_match('/v(\d+)\./', $a, $a_matches);
+    preg_match('/v(\d+)\./', $b, $b_matches);
+    $a_ver = (int) ($a_matches[1] ?? 0);
+    $b_ver = (int) ($b_matches[1] ?? 0);
+    return $b_ver - $a_ver;
+  });
+
+  return $files[0];
 }
 
 $sql = "SELECT username, email, profile_photo, created_at FROM users WHERE id = ?";
@@ -268,48 +279,49 @@ $result = $stmt->get_result();
 $user_data = $result->fetch_assoc();
 
 if (!empty($user_data['profile_photo'])) {
+  if (substr($user_data['profile_photo'], -1) === '/') {
     $latest_photo = getLatestProfilePhoto($user_id, $db);
-    if ($latest_photo) {
-        $user_data['profile_photo'] = $latest_photo;
-    } else {
-        $user_data['profile_photo'] = null;
-    }
+    $user_data['profile_photo'] = $latest_photo ?: null;
+  } else if (!file_exists($user_data['profile_photo'])) {
+    $latest_photo = getLatestProfilePhoto($user_id, $db);
+    $user_data['profile_photo'] = $latest_photo ?: null;
+  }
 }
 
 if (isset($_POST['delete_account'])) {
-    $delete_password = $_POST['delete_password'];
-    $delete_confirmation = trim($_POST['delete_confirmation']);
+  $delete_password = $_POST['delete_password'];
+  $delete_confirmation = trim($_POST['delete_confirmation']);
 
-    $sql = "SELECT username, email, profile_photo, created_at FROM users WHERE id = ?";
-    $stmt = $db->prepare($sql);
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $user = $result->fetch_assoc();
+  $sql = "SELECT username, email, profile_photo, created_at FROM users WHERE id = ?";
+  $stmt = $db->prepare($sql);
+  $stmt->bind_param("i", $user_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  $user = $result->fetch_assoc();
 
-    if (password_verify($delete_password, $user['password'])) {
-        if (strtolower($delete_confirmation) === "delete my account") {
-            if (!empty($user['profile_photo']) && file_exists($user['profile_photo'])) {
-                unlink($user['profile_photo']);
-            }
+  if (password_verify($delete_password, $user['password'])) {
+    if (strtolower($delete_confirmation) === "delete my account") {
+      if (!empty($user['profile_photo']) && file_exists($user['profile_photo'])) {
+        unlink($user['profile_photo']);
+      }
 
-            $sql = "DELETE FROM users WHERE id = ?";
-            $stmt = $db->prepare($sql);
-            $stmt->bind_param("i", $user_id);
+      $sql = "DELETE FROM users WHERE id = ?";
+      $stmt = $db->prepare($sql);
+      $stmt->bind_param("i", $user_id);
 
-            if ($stmt->execute()) {
-                session_destroy();
-                header("Location: login.php?account_deleted=1");
-                exit();
-            } else {
-                $error = "Errore durante l'eliminazione dell'account: " . $stmt->error;
-            }
-        } else {
-            $error = "Devi digitare esattamente 'delete my account' per confermare!";
-        }
+      if ($stmt->execute()) {
+        session_destroy();
+        header("Location: login.php?account_deleted=1");
+        exit();
+      } else {
+        $error = "Errore durante l'eliminazione dell'account: " . $stmt->error;
+      }
     } else {
-        $error = "Password non corretta!";
+      $error = "Devi digitare esattamente 'delete my account' per confermare!";
     }
+  } else {
+    $error = "Password non corretta!";
+  }
 }
 
 $sql = "SELECT username, email, profile_photo, created_at FROM users WHERE id = ?";
@@ -318,6 +330,39 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $user_data = $result->fetch_assoc();
+
+function migrateOldProfilePhotos($user_id, $db)
+{
+  $sql = "SELECT profile_photo FROM users WHERE id = ?";
+  $stmt = $db->prepare($sql);
+  $stmt->bind_param("i", $user_id);
+  $stmt->execute();
+  $result = $stmt->get_result();
+  $user = $result->fetch_assoc();
+
+  if (!empty($user['profile_photo']) && substr($user['profile_photo'], -1) === '/') {
+    $base_path = $user['profile_photo'];
+    $files = glob($base_path . "v*.*");
+
+    if (!empty($files)) {
+      usort($files, function ($a, $b) {
+        preg_match('/v(\d+)\./', $a, $a_matches);
+        preg_match('/v(\d+)\./', $b, $b_matches);
+        $a_ver = (int) ($a_matches[1] ?? 0);
+        $b_ver = (int) ($b_matches[1] ?? 0);
+        return $b_ver - $a_ver;
+      });
+
+      $latest_file = $files[0];
+      $update_sql = "UPDATE users SET profile_photo = ? WHERE id = ?";
+      $update_stmt = $db->prepare($update_sql);
+      $update_stmt->bind_param("si", $latest_file, $user_id);
+      $update_stmt->execute();
+    }
+  }
+}
+
+migrateOldProfilePhotos($user_id, $db);
 ?>
 
 <!DOCTYPE html>
@@ -1075,14 +1120,16 @@ $user_data = $result->fetch_assoc();
       <div class="profile-section">
         <div class="profile-photo-container" onclick="openPhotoModal()">
           <?php
-                    $latest_photo = getLatestProfilePhoto($user_id, $db);
-                    if ($latest_photo && file_exists($latest_photo)): ?>
-          <img src="<?php echo htmlspecialchars($latest_photo); ?>?v=<?php echo time(); ?>" alt="Foto Profilo"
-            class="profile-photo" id="currentPhoto">
+          $latest_photo = getLatestProfilePhoto($user_id, $db);
+          if ($latest_photo && file_exists($latest_photo)):
+            $photo_url = $latest_photo . '?v=' . time();
+            ?>
+            <img src="<?php echo htmlspecialchars($photo_url); ?>" alt="Foto Profilo" class="profile-photo"
+              id="currentPhoto">
           <?php else: ?>
-          <div class="default-avatar" id="currentAvatar">
-            <?php echo strtoupper(substr($user_data['username'], 0, 1)); ?>
-          </div>
+            <div class="default-avatar" id="currentAvatar">
+              <?php echo strtoupper(substr($user_data['username'], 0, 1)); ?>
+            </div>
           <?php endif; ?>
           <div class="photo-edit-overlay">
             <i class="fas fa-camera"></i>
@@ -1097,11 +1144,11 @@ $user_data = $result->fetch_assoc();
           </h2>
           <p>
             <?php if (!empty($user_data['email'])): ?>
-            <?php echo htmlspecialchars($user_data['email']); ?>
+              <?php echo htmlspecialchars($user_data['email']); ?>
             <?php else: ?>
-            <span data-translate-it="Email non impostata" data-translate-en="Email not set">
-              <?php echo $email_not_set; ?>
-            </span>
+              <span data-translate-it="Email non impostata" data-translate-en="Email not set">
+                <?php echo $email_not_set; ?>
+              </span>
             <?php endif; ?>
           </p>
         </div>
@@ -1114,17 +1161,17 @@ $user_data = $result->fetch_assoc();
 
     <div class="main-content">
       <?php if ($message): ?>
-      <div class="alert alert-success">
-        <i class="fas fa-check-circle"></i>
-        <?php echo htmlspecialchars($message); ?>
-      </div>
+        <div class="alert alert-success">
+          <i class="fas fa-check-circle"></i>
+          <?php echo htmlspecialchars($message); ?>
+        </div>
       <?php endif; ?>
 
       <?php if ($error): ?>
-      <div class="alert alert-error">
-        <i class="fas fa-exclamation-circle"></i>
-        <?php echo htmlspecialchars($error); ?>
-      </div>
+        <div class="alert alert-error">
+          <i class="fas fa-exclamation-circle"></i>
+          <?php echo htmlspecialchars($error); ?>
+        </div>
       <?php endif; ?>
 
       <div class="section">
@@ -1235,15 +1282,15 @@ $user_data = $result->fetch_assoc();
           </div>
           <div style="margin-top: 8px; margin-left: 24px;">
             <?php
-                        if (!empty($user_data['created_at'])) {
-                            $created_date = new DateTime($user_data['created_at']);
-                            echo $created_date->format('d/m/Y') .
-                                ' <span data-translate-it="alle" data-translate-en="at">alle</span> ' .
-                                $created_date->format('H:i');
-                        } else {
-                            echo '<span data-translate-it="Data non disponibile" data-translate-en="Date not available">Data non disponibile</span>';
-                        }
-                        ?>
+            if (!empty($user_data['created_at'])) {
+              $created_date = new DateTime($user_data['created_at']);
+              echo $created_date->format('d/m/Y') .
+                ' <span data-translate-it="alle" data-translate-en="at">alle</span> ' .
+                $created_date->format('H:i');
+            } else {
+              echo '<span data-translate-it="Data non disponibile" data-translate-en="Date not available">Data non disponibile</span>';
+            }
+            ?>
           </div>
         </div>
       </div>
@@ -1264,12 +1311,12 @@ $user_data = $result->fetch_assoc();
     </button>
     <div class="photo-modal">
       <?php if (!empty($user_data['profile_photo']) && file_exists($user_data['profile_photo'])): ?>
-      <img src="<?php echo htmlspecialchars($user_data['profile_photo']); ?>" alt="Foto Profilo" class="enlarged-photo"
-        style="width: 300px; height: 300px; border-radius: 50%; object-fit: cover;">
+        <img src="<?php echo htmlspecialchars($user_data['profile_photo']); ?>" alt="Foto Profilo" class="enlarged-photo"
+          style="width: 300px; height: 300px; border-radius: 50%; object-fit: cover;">
       <?php else: ?>
-      <div class="enlarged-avatar">
-        <?php echo strtoupper(substr($user_data['username'], 0, 1)); ?>
-      </div>
+        <div class="enlarged-avatar">
+          <?php echo strtoupper(substr($user_data['username'], 0, 1)); ?>
+        </div>
       <?php endif; ?>
 
       <div class="photo-upload-form">
@@ -1612,222 +1659,357 @@ $user_data = $result->fetch_assoc();
   </style>
   <img id="lingua" src="https://renadeveloper.altervista.org/bandierait.png" alt="Lingua"
     data-alt-src="https://renadeveloper.altervista.org/bandieraen.png">
-<div id="error-popup"></div>
+  <div id="error-popup"></div>
 
-<div class="language-overlay" id="language-overlay"></div>
-<div id="language-popup" class="language-popup">
+  <div class="language-overlay" id="language-overlay"></div>
+  <div id="language-popup" class="language-popup">
     <span id="close-popup" class="close-popup">&times;</span>
     <h3 data-translate-en="Seleziona lingua" data-translate-it="Select language">Seleziona lingua</h3>
-    
+
     <button class="language-btn" data-lang="it">
-        <img src="https://renadeveloper.altervista.org/bandierait.png" alt="Italiano">
-        <span>Italiano</span>
+      <img src="https://renadeveloper.altervista.org/bandierait.png" alt="Italiano">
+      <span>Italiano</span>
     </button>
-    
+
     <button class="language-btn" data-lang="en">
-        <img src="https://renadeveloper.altervista.org/bandieraen.png" alt="English">
-        <span>English</span>
+      <img src="https://renadeveloper.altervista.org/bandieraen.png" alt="English">
+      <span>English</span>
     </button>
-</div>
+  </div>
   <style>
-.language-popup {
-    display: none;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 300px;
-    background: rgba(0, 0, 0, 0.9);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-radius: 16px;
-    padding: 25px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    z-index: 1000;
-    animation: fadeIn 0.3s ease-out;
-}
+    .language-popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 300px;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-out;
+    }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translate(-50%, -45%); }
-    to { opacity: 1; transform: translate(-50%, -50%); }
-}
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -45%);
+      }
 
-.language-popup h3 {
-    color: white;
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    text-align: center;
-}
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+      }
+    }
 
-.language-btn {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 12px 20px;
-    margin-bottom: 12px;
-    background: rgba(255, 255, 255, 0.05);
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
+    .language-popup h3 {
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      text-align: center;
+    }
 
-.language-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-2px);
-}
+    .language-btn {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      padding: 12px 20px;
+      margin-bottom: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
 
-.language-btn.active {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: white;
-}
+    .language-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
 
-.language-btn img {
-    width: 24px;
-    margin-right: 12px;
-    border-radius: 4px;
-}
+    .language-btn.active {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: white;
+    }
 
-.close-popup {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 22px;
-    cursor: pointer;
-    transition: color 0.2s ease;
-}
+    .language-btn img {
+      width: 24px;
+      margin-right: 12px;
+      border-radius: 4px;
+    }
 
-.close-popup:hover {
-    color: white;
-}
+    .close-popup {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 22px;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
 
-.language-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(5px);
-    z-index: 999;
-}
+    .close-popup:hover {
+      color: white;
+    }
 
-#lingua {
-    cursor: pointer;
-    width: 30px;
-    position: absolute;
-    top: 12px;
-    right: 57px;
-    transform: translateX(50%);
-    border-radius: 20px;
-    z-index: 1000;
-}
+    .language-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      z-index: 999;
+    }
 
-@media screen and (max-width: 600px) {
     #lingua {
+      cursor: pointer;
+      width: 30px;
+      position: absolute;
+      top: 12px;
+      right: 57px;
+      transform: translateX(50%);
+      border-radius: 20px;
+      z-index: 1000;
+    }
+
+    @media screen and (max-width: 600px) {
+      #lingua {
         margin-top: 30px;
         right: 50%;
+      }
     }
-}
   </style>
   <script>
-document.getElementById('lingua').addEventListener('click', function(e) {
-    e.stopPropagation();
-    document.getElementById('language-overlay').style.display = 'block';
-    document.getElementById('language-popup').style.display = 'block';
-});
+    document.getElementById('lingua').addEventListener('click', function (e) {
+      e.stopPropagation();
+      document.getElementById('language-overlay').style.display = 'block';
+      document.getElementById('language-popup').style.display = 'block';
+    });
 
-function closeLanguagePopup() {
-    document.getElementById('language-overlay').style.display = 'none';
-    document.getElementById('language-popup').style.display = 'none';
-}
+    function closeLanguagePopup() {
+      document.getElementById('language-overlay').style.display = 'none';
+      document.getElementById('language-popup').style.display = 'none';
+    }
 
-document.getElementById('close-popup').addEventListener('click', closeLanguagePopup);
-document.getElementById('language-overlay').addEventListener('click', closeLanguagePopup);
+    document.getElementById('close-popup').addEventListener('click', closeLanguagePopup);
+    document.getElementById('language-overlay').addEventListener('click', closeLanguagePopup);
 
-document.getElementById('language-popup').addEventListener('click', function(e) {
-    e.stopPropagation();
-});
+    document.getElementById('language-popup').addEventListener('click', function (e) {
+      e.stopPropagation();
+    });
 
-function translatePage(lang) {
-    localStorage.setItem('preferredLanguage', lang);
-    
-    document.querySelectorAll('[data-translate-it]').forEach(function(el) {
+    function translatePage(lang) {
+      localStorage.setItem('preferredLanguage', lang);
+
+      document.querySelectorAll('[data-translate-it]').forEach(function (el) {
         el.textContent = el.getAttribute(`data-translate-${lang}`);
-    });
-    
-    document.querySelectorAll('[data-placeholder-it]').forEach(function(el) {
+      });
+
+      document.querySelectorAll('[data-placeholder-it]').forEach(function (el) {
         el.placeholder = el.getAttribute(`data-placeholder-${lang}`);
-    });
-    
-    const flagImg = document.getElementById('lingua');
-    flagImg.src = lang === 'it' 
+      });
+
+      const flagImg = document.getElementById('lingua');
+      flagImg.src = lang === 'it'
         ? 'https://renadeveloper.altervista.org/bandierait.png'
         : 'https://renadeveloper.altervista.org/bandieraen.png';
-    flagImg.alt = lang === 'it' ? 'Bandiera Italiana' : 'English Flag';
-    
-    document.title = lang === 'it' 
-        ? 'Gestione Account - My Rena ID' 
-        : 'Account Management - My Rena ID';
-}
+      flagImg.alt = lang === 'it' ? 'Bandiera Italiana' : 'English Flag';
 
-document.querySelectorAll('.language-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+      document.title = lang === 'it'
+        ? 'Gestione Account - My Rena ID'
+        : 'Account Management - My Rena ID';
+    }
+
+    document.querySelectorAll('.language-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
         const lang = this.getAttribute('data-lang');
         translatePage(lang);
         closeLanguagePopup();
-        
+
         document.querySelectorAll('.language-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
+      });
     });
-});
 
-document.addEventListener('DOMContentLoaded', function() {
-    const savedLang = localStorage.getItem('preferredLanguage') || 'it';
-    translatePage(savedLang);
-    
-    document.querySelector(`.language-btn[data-lang="${savedLang}"]`).classList.add('active');
-});
+    document.addEventListener('DOMContentLoaded', function () {
+      const savedLang = localStorage.getItem('preferredLanguage') || 'it';
+      translatePage(savedLang);
 
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
+      document.querySelector(`.language-btn[data-lang="${savedLang}"]`).classList.add('active');
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
         closeLanguagePopup();
-    }
-});
+      }
+    });
 
-document.addEventListener('DOMContentLoaded', function() {
-    const savedLang = localStorage.getItem('preferredLanguage') || 'it';
-    translatePage(savedLang);
+    document.addEventListener('DOMContentLoaded', function () {
+      const savedLang = localStorage.getItem('preferredLanguage') || 'it';
+      translatePage(savedLang);
 
-    document.querySelectorAll('.language-btn').forEach(btn => {
+      document.querySelectorAll('.language-btn').forEach(btn => {
         if (btn.getAttribute('data-lang') === savedLang) {
-            btn.classList.add('active');
+          btn.classList.add('active');
         }
-        
-        btn.addEventListener('click', function() {
-            const lang = this.getAttribute('data-lang');
-            translatePage(lang);
-            closeLanguagePopup();
-            
-            document.querySelectorAll('.language-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-        });
-    });
-});
 
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
+        btn.addEventListener('click', function () {
+          const lang = this.getAttribute('data-lang');
+          translatePage(lang);
+          closeLanguagePopup();
+
+          document.querySelectorAll('.language-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
         closeLanguagePopup();
-    }
-});
+      }
+    });
   </script>
+
+  <style>
+    #custom-menu {
+      display: none;
+      position: absolute;
+      background: rgba(0, 0, 0, 0.9);
+      border-radius: 15px;
+      padding: 15px;
+      backdrop-filter: blur(20px);
+      z-index: 99999999;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    #custom-menu ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #custom-menu ul li {
+      margin-bottom: 10px;
+    }
+
+    #custom-menu ul li a {
+      display: flex;
+      align-items: center;
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    #custom-menu ul li a:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(5px);
+    }
+
+    #custom-menu ul li a img {
+      margin-right: 10px;
+      border-radius: 5px;
+    }
+
+    #custom-menu ul li a span {
+      font-size: 16px;
+    }
+
+    #custom-menu ul li a.has-svg span {
+      margin-left: 10px;
+    }
+
+    .custom-menu-svg {
+      width: 22px;
+      height: 22px;
+      max-width: 100%;
+      max-height: 100%;
+    }
+  </style>
+  <div id="custom-menu">
+    <ul>
+      <li><a href="https://rena.altervista.org">
+          <img src="https://gcsapp.altervista.org/homebanner.png" alt="Home" width="20">
+          <span>Home</span>
+        </a></li>
+      <li><a href="https://rena.altervista.org/privacy-policy.html" class="has-svg">
+          <svg class="custom-menu-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 14.5V16.5M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288"
+              stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>Privacy Policy</span>
+        </a></li>
+      <li><a href="https://rena.altervista.org/chi-siamo.html" class="has-svg">
+          <svg class="custom-menu-svg" version="1.1" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" fill="#ffffff" stroke="#ffffff">
+            <g>
+              <path
+                d="M256,265.308c73.252,0,132.644-59.391,132.644-132.654C388.644,59.412,329.252,0,256,0 c-73.262,0-132.643,59.412-132.643,132.654C123.357,205.917,182.738,265.308,256,265.308z">
+              </path>
+              <path
+                d="M425.874,393.104c-5.922-35.474-36-84.509-57.552-107.465c-5.829-6.212-15.948-3.628-19.504-1.427 c-27.04,16.672-58.782,26.399-92.819,26.399c-34.036,0-65.778-9.727-92.818-26.399c-3.555-2.201-13.675-4.785-19.505,1.427 c-21.55,22.956-51.628,71.991-57.551,107.465C71.573,480.444,164.877,512,256,512C347.123,512,440.427,480.444,425.874,393.104z">
+              </path>
+            </g>
+          </svg>
+          <span data-translate-it="Chi Siamo" data-translate-en="About Us">Chi Siamo</span>
+        </a></li>
+      <li><a href="https://rena.altervista.org/news.php" class="has-svg">
+          <svg class="custom-menu-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+            stroke="#ffffff">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path
+                d="M5 21H17C19.2091 21 21 19.2091 21 17V5C21 3.89543 20.1046 3 19 3H9C7.89543 3 7 3.89543 7 5V18C7 19.6569 6.65685 21 5 21C3.61929 21 3 19.8807 3 18.5V10Z"
+                stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="12" cy="8" r="1" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></circle>
+              <path d="M11 14H17" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
+              <path d="M11 17H14" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
+            </g>
+          </svg>
+          <span>News</span>
+        </a></li>
+    </ul>
+  </div>
+  <script>
+    document.addEventListener('contextmenu', function (event) {
+      event.preventDefault();
+      if (window.innerWidth > 768) {
+        const customMenu = document.getElementById('custom-menu');
+        if (customMenu) {
+          customMenu.style.display = 'block';
+          customMenu.style.left = event.pageX + 'px';
+          customMenu.style.top = event.pageY + 'px';
+        }
+      }
+    });
+
+    document.addEventListener('click', function (event) {
+      const customMenu = document.getElementById('custom-menu');
+      if (customMenu && !customMenu.contains(event.target)) {
+        customMenu.style.display = 'none';
+      }
+    });
+  </script>
+
 </body>
 
 </html>
+
+<script src="API-extencion-domains.js"></script>
