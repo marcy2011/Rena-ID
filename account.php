@@ -1175,9 +1175,9 @@ migrateOldProfilePhotos($user_id, $db);
       <?php endif; ?>
 
       <div class="section">
-        <h3 data-translate-it="Informazioni Profilo" data-translate-en="Profile Info">
+        <h3>
           <i class="fas fa-user section-icon"></i>
-          <span>Informazioni Profilo</span>
+          <span data-translate-it="Informazioni Profilo" data-translate-en="Profile Info">Informazioni Profilo</span>
         </h3>
         <form method="POST" autocomplete="off" id="profileForm">
           <div class="form-group">
@@ -1200,9 +1200,10 @@ migrateOldProfilePhotos($user_id, $db);
               <input type="password" id="current_password" name="current_password" required autocomplete="new-password">
               <i class="fas fa-eye password-toggle" onclick="togglePassword('current_password')"></i>
             </div>
-            <a href="password-forgot.php" class="forgot-password-link" data-translate-en="Forgot your password?"
-              data-translate-it="Password dimenticata?">
-              <i class="fas fa-key"></i> Password dimenticata?
+            <a href="password-forgot.php" class="forgot-password-link">
+              <i class="fas fa-key"></i>
+              <span data-translate-en="Forgot your password?" data-translate-it="Password dimenticata?">Password
+                dimenticata?</span>
             </a>
           </div>
 
@@ -1296,10 +1297,9 @@ migrateOldProfilePhotos($user_id, $db);
       </div>
 
       <div style="text-align: center; margin-top: 40px;">
-        <button onclick="openDeleteModal()" class="btn btn-danger" data-translate-en="Delete Account"
-          data-translate-it="Elimina Account">
+        <button onclick="openDeleteModal()" class="btn btn-danger">
           <i class="fas fa-trash-alt"></i>
-          <span>Elimina Account</span>
+          <span data-translate-en="Delete Account" data-translate-it="Elimina Account">Elimina Account</span>
         </button>
       </div>
     </div>
@@ -1337,15 +1337,13 @@ migrateOldProfilePhotos($user_id, $db);
           </div>
 
           <div style="display: flex; gap: 12px; justify-content: center;">
-            <button type="submit" name="upload_photo" class="btn" id="uploadPhotoBtn" data-translate-en="Upload Photo"
-              data-translate-it="Carica Foto">
+            <button type="submit" name="upload_photo" class="btn" id="uploadPhotoBtn">
               <i class="fas fa-upload"></i>
-              <span>Carica Foto</span>
+              <span data-translate-en="Upload Photo" data-translate-it="Carica Foto">Carica Foto</span>
             </button>
-            <button type="button" onclick="closePhotoModal()" class="btn btn-secondary" data-translate-en="Cancel"
-              data-translate-it="Annulla">
+            <button type="button" onclick="closePhotoModal()" class="btn btn-secondary">
               <i class="fas fa-times"></i>
-              <span>Annulla</span>
+              <span data-translate-en="Cancel" data-translate-it="Annulla">Annulla</span>
             </button>
           </div>
         </form>
@@ -1355,9 +1353,9 @@ migrateOldProfilePhotos($user_id, $db);
 
   <div class="modal-overlay" id="deleteModal">
     <div class="modal">
-      <h3 data-translate-en="Delete Account" data-translate-it="Elimina Account">
+      <h3>
         <i class="fas fa-exclamation-triangle" style="color: #ed5252 !important; margin-right: 12px;"></i>
-        <span>Elimina Account</span>
+        <span data-translate-en="Delete Account" data-translate-it="Elimina Account">Elimina Account</span>
       </h3>
 
       <div class="delete-warning">
@@ -1405,15 +1403,14 @@ migrateOldProfilePhotos($user_id, $db);
         </div>
 
         <div class="modal-buttons">
-          <button type="button" onclick="closeDeleteModal()" class="btn btn-secondary" data-translate-it="Annulla"
-            data-translate-en="Cancel">
+          <button type="button" onclick="closeDeleteModal()" class="btn btn-secondary">
             <i class="fas fa-times"></i>
-            <span>Annulla</span>
+            <span data-translate-it="Annulla" data-translate-en="Cancel">Annulla</span>
           </button>
-          <button type="submit" name="delete_account" class="btn btn-danger" id="deleteAccountBtn"
-            data-translate-it="Elimina Definitivamente" data-translate-en="Permanently Delete">
+          <button type="submit" name="delete_account" class="btn btn-danger" id="deleteAccountBtn">
             <i class="fas fa-trash-alt"></i>
-            <span>Elimina Definitivamente</span>
+            <span data-translate-it="Elimina Definitivamente" data-translate-en="Permanently Delete">Elimina
+              Definitivamente</span>
           </button>
         </div>
       </form>
