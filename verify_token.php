@@ -3,68 +3,74 @@ session_name('cross_domain_auth');
 session_start();
 
 header('Content-Type: application/json');
-header("Access-Control-Allow-Origin: https://renadeveloper.altervista.org");
-header("Access-Control-Allow-Origin: https://renaarcade.altervista.org");
-header("Access-Control-Allow-Origin: https://renastore.altervista.org");
-header("Access-Control-Allow-Origin: https://renasupporto.altervista.org");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Access-Control-Allow-Credentials: true');
+
+$allowed_origins = [
+  "https://renadeveloper.altervista.org",
+  "https://renaarcade.altervista.org",
+  "https://renastore.altervista.org",
+  "https://renasupporto.altervista.org"
+];
+
+if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+    http_response_code(200);
+    exit(0);
+}
+
+if (isset($_SERVER['HTTP_ORIGIN']) && in_array($_SERVER['HTTP_ORIGIN'], $allowed_origins)) {
+    header("Access-Control-Allow-Origin: " . $_SERVER['HTTP_ORIGIN']);
+    header("Vary: Origin");
+}
 
 if (!isset($_GET['token'])) {
-  die(json_encode(['status' => 'error', 'message' => 'Token mancante']));
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => 'Token mancante']);
+    exit;
 }
 
 $token = $_GET['token'];
 
-if (isset($_SESSION['cross_domain_token']) && $_SESSION['cross_domain_token'] === $token) {
-  $host = "localhost";
-  $user = "rena";
-  $pass = "PASS";
-  $dbname = "my_rena";
+try {
+    if (isset($_SESSION['cross_domain_token']) && $_SESSION['cross_domain_token'] === $token) {
+        $host = "localhost";
+        $user = "rena";
+        $pass = "PASS";
+        $dbname = "my_rena";
 
-  $conn = new mysqli($host, $user, $pass, $dbname);
+        $conn = new mysqli($host, $user, $pass, $dbname);
 
-  $profile_photo = null;
-  if (!$conn->connect_error) {
-    $user_id = $_SESSION['user_id'];
-    $sql = "SELECT profile_photo FROM users WHERE id = '$user_id'";
-    $result = $conn->query($sql);
+        $profile_photo = null;
+        if (!$conn->connect_error) {
+            $user_id = $_SESSION['user_id'];
+            $sql = "SELECT profile_photo FROM users WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
 
-    if ($result->num_rows > 0) {
-      $user = $result->fetch_assoc();
-      if (!empty($user['profile_photo'])) {
-        if (!empty($user['profile_photo'])) {
-          if (filter_var($user['profile_photo'], FILTER_VALIDATE_URL)) {
-            $profile_photo = $user['profile_photo'];
-          } else if (strpos($user['profile_photo'], 'uploads/profile_photos/') !== false) {
-            if (strpos($user['profile_photo'], 'https://') === 0 || strpos($user['profile_photo'], 'http://') === 0) {
-              $profile_photo = $user['profile_photo'];
-            } else {
-              $relative_path = str_replace('uploads/profile_photos/', '', $user['profile_photo']);
-              $profile_photo = 'https://rena.altervista.org/uploads/profile_photos/' . $relative_path;
+            if ($result->num_rows > 0) {
+                $user = $result->fetch_assoc();
+                if (!empty($user['profile_photo'])) {
+                    $profile_photo = 'https://rena.altervista.org/uploads/profile_photos/' . $user_id . '/' . $user['profile_photo'];
+                }
             }
-          } else {
-            $profile_photo = 'https://rena.altervista.org/uploads/profile_photos/' . $user_id . '/' . $user['profile_photo'];
-          }
-
-          $file_path = $_SERVER['DOCUMENT_ROOT'] . '/uploads/profile_photos/' . $user_id . '/' . basename($user['profile_photo']);
-          if (!file_exists($file_path)) {
-            error_log("File immagine non trovato: " . $file_path);
-            $profile_photo = null;
-          }
+            $conn->close();
         }
-      }
-    }
-    $conn->close();
-  }
 
-  echo json_encode([
-    'status' => 'success',
-    'user_id' => $_SESSION['user_id'],
-    'username' => $_SESSION['username'],
-    'profile_photo' => $profile_photo
-  ]);
-} else {
-  echo json_encode(['status' => 'error', 'message' => 'Token non valido']);
+        echo json_encode([
+            'status' => 'success',
+            'user_id' => $_SESSION['user_id'],
+            'username' => $_SESSION['username'],
+            'profile_photo' => $profile_photo
+        ]);
+    } else {
+        http_response_code(401);
+        echo json_encode(['status' => 'error', 'message' => 'Token non valido']);
+    }
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['status' => 'error', 'message' => 'Errore del server: ' . $e->getMessage()]);
 }
 ?>
