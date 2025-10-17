@@ -18,6 +18,8 @@ function get_code_filename($email)
 }
 
 $step = $_POST['step'] ?? 'email';
+$lang = $_POST['lang'] ?? $_SESSION['lang'] ?? 'it';
+$_SESSION['lang'] = $lang;
 
 $error = '';
 $success = '';
@@ -31,13 +33,11 @@ if ($step === 'email' && isset($_POST['email'])) {
     $stmt->store_result();
 
     if ($stmt->num_rows === 0) {
-        $error = "Questa email non è associata a nessun account";
+        $error = $lang === 'en' ? "This email is not associated with any account" : "Questa email non è associata a nessun account";
         $step = 'email';
     } else {
         $code = rand(100000, 999999);
         file_put_contents(get_code_filename($email), $code . "|" . time());
-
-        $lang = $_POST['lang'] ?? 'it';
 
         if ($lang === 'en') {
             $subject = "Rena ID Password Reset Code";
@@ -188,15 +188,15 @@ if ($step === 'email' && isset($_POST['email'])) {
         $saved_code = trim($saved_code);
 
         if (time() - $timestamp > 600) {
-            $error = "Codice scaduto. Riprova.";
+            $error = $lang === 'en' ? "Code expired. Try again." : "Codice scaduto. Riprova.";
             $step = 'email';
         } elseif ($input_code === $saved_code) {
             $step = 'reset';
         } else {
-            $error = "Codice errato. Riprova.";
+            $error = $lang === 'en' ? "Wrong code. Try again." : "Codice errato. Riprova.";
         }
     } else {
-        $error = "Nessun codice trovato. Invia prima l'email.";
+        $error = $lang === 'en' ? "No code found. Send the email first." : "Nessun codice trovato. Invia prima l'email.";
         $step = 'email';
     }
 } elseif ($step === 'reset' && isset($_POST['new_password'])) {
@@ -207,12 +207,12 @@ if ($step === 'email' && isset($_POST['email'])) {
     $stmt->bind_param("ss", $new_password, $email);
 
     if ($stmt->execute()) {
-        $success = "Password cambiata con successo!";
+        $success = $lang === 'en' ? "Password changed successfully!" : "Password cambiata con successo!";
         unlink(get_code_filename($email));
         session_destroy();
         $step = 'done';
     } else {
-        $error = "Errore nel cambiare la password: " . $stmt->error;
+        $error = $lang === 'en' ? "Error changing password: " . $stmt->error : "Errore nel cambiare la password: " . $stmt->error;
         $step = 'reset';
     }
 
@@ -683,9 +683,9 @@ if ($step === 'email' && isset($_POST['email'])) {
                 <div class="step-dot"></div>
             </div>
 
-            <form method="POST">
+            <form method="POST" id="email-form">
                 <input type="hidden" name="step" value="email" />
-                <input type="hidden" name="lang" id="form-lang" value="it" />
+                <input type="hidden" name="lang" id="email-form-lang" value="<?php echo $lang; ?>" />
                 <div class="form-group">
                     <label for="email" data-translate-en="Email Address" data-translate-it="Indirizzo Email">Indirizzo
                         Email</label>
@@ -713,9 +713,9 @@ if ($step === 'email' && isset($_POST['email'])) {
                 <div class="step-dot"></div>
             </div>
 
-            <form method="POST">
+            <form method="POST" id="code-form">
                 <input type="hidden" name="step" value="code" />
-                <input type="hidden" name="lang" id="form-lang" value="it" />
+                <input type="hidden" name="lang" id="code-form-lang" value="<?php echo $lang; ?>" />
                 <div class="form-group">
                     <label for="code" data-translate-en="Verification Code" data-translate-it="Codice di Verifica">Codice di
                         Verifica</label>
@@ -743,9 +743,9 @@ if ($step === 'email' && isset($_POST['email'])) {
                 <div class="step-dot active"></div>
             </div>
 
-            <form method="POST">
+            <form method="POST" id="reset-form">
                 <input type="hidden" name="step" value="reset" />
-                <input type="hidden" name="lang" id="form-lang" value="it" />
+                <input type="hidden" name="lang" id="reset-form-lang" value="<?php echo $lang; ?>" />
                 <div class="form-group">
                     <label for="new_password" data-translate-en="New Password" data-translate-it="Nuova Password">Nuova
                         Password</label>
@@ -826,6 +826,15 @@ if ($step === 'email' && isset($_POST['email'])) {
                 ? 'https://renadeveloper.altervista.org/bandierait.png'
                 : 'https://renadeveloper.altervista.org/bandieraen.png';
             flagImg.setAttribute('data-lang', lang);
+            
+    const emailFormLang = document.getElementById('email-form-lang');
+    const codeFormLang = document.getElementById('code-form-lang');
+    const resetFormLang = document.getElementById('reset-form-lang');
+    
+    if (emailFormLang) emailFormLang.value = lang;
+    if (codeFormLang) codeFormLang.value = lang;
+    if (resetFormLang) resetFormLang.value = lang;
+        
         }
 
         document.getElementById('lingua').addEventListener('click', function (e) {
@@ -899,6 +908,130 @@ if ($step === 'email' && isset($_POST['email'])) {
             });
         }
     </script>
+<style>
+    #custom-menu {
+      display: none;
+      position: absolute;
+      background: rgba(0, 0, 0, 0.9);
+      border-radius: 15px;
+      padding: 15px;
+      backdrop-filter: blur(20px);
+      z-index: 99999999;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    #custom-menu ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #custom-menu ul li {
+      margin-bottom: 10px;
+    }
+
+    #custom-menu ul li a {
+      display: flex;
+      align-items: center;
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    #custom-menu ul li a:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(5px);
+    }
+
+    #custom-menu ul li a img {
+      margin-right: 10px;
+      border-radius: 5px;
+    }
+
+    #custom-menu ul li a span {
+      font-size: 16px;
+    }
+
+    #custom-menu ul li a.has-svg span {
+      margin-left: 10px;
+    }
+
+    .custom-menu-svg {
+      width: 22px;
+      height: 22px;
+      max-width: 100%;
+      max-height: 100%;
+    }
+</style>
+  <div id="custom-menu">
+    <ul>
+      <li><a href="https://rena.altervista.org">
+          <img src="https://gcsapp.altervista.org/homebanner.png" alt="Home" width="20">
+          <span>Home</span>
+        </a></li>
+      <li><a href="https://rena.altervista.org/privacy-policy.html" class="has-svg">
+          <svg class="custom-menu-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 14.5V16.5M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288"
+              stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>Privacy Policy</span>
+        </a></li>
+      <li><a href="https://rena.altervista.org/chi-siamo.html" class="has-svg">
+          <svg class="custom-menu-svg" version="1.1" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" fill="#ffffff" stroke="#ffffff">
+            <g>
+              <path
+                d="M256,265.308c73.252,0,132.644-59.391,132.644-132.654C388.644,59.412,329.252,0,256,0 c-73.262,0-132.643,59.412-132.643,132.654C123.357,205.917,182.738,265.308,256,265.308z">
+              </path>
+              <path
+                d="M425.874,393.104c-5.922-35.474-36-84.509-57.552-107.465c-5.829-6.212-15.948-3.628-19.504-1.427 c-27.04,16.672-58.782,26.399-92.819,26.399c-34.036,0-65.778-9.727-92.818-26.399c-3.555-2.201-13.675-4.785-19.505,1.427 c-21.55,22.956-51.628,71.991-57.551,107.465C71.573,480.444,164.877,512,256,512C347.123,512,440.427,480.444,425.874,393.104z">
+              </path>
+            </g>
+          </svg>
+          <span data-translate-it="Chi Siamo" data-translate-en="About Us">Chi Siamo</span>
+        </a></li>
+      <li><a href="https://rena.altervista.org/news.php" class="has-svg">
+          <svg class="custom-menu-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+            stroke="#ffffff">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path
+                d="M5 21H17C19.2091 21 21 19.2091 21 17V5C21 3.89543 20.1046 3 19 3H9C7.89543 3 7 3.89543 7 5V18C7 19.6569 6.65685 21 5 21C3.61929 21 3 19.8807 3 18.5V10Z"
+                stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="12" cy="8" r="1" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></circle>
+              <path d="M11 14H17" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
+              <path d="M11 17H14" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
+            </g>
+          </svg>
+          <span>News</span>
+        </a></li>
+    </ul>
+  </div>
+<script>
+document.addEventListener('contextmenu', function (event) {
+  event.preventDefault();
+  if (window.innerWidth > 768) {
+    const customMenu = document.getElementById('custom-menu');
+    if (customMenu) {
+      customMenu.style.display = 'block';
+      customMenu.style.left = event.pageX + 'px';
+      customMenu.style.top = event.pageY + 'px';
+    }
+  }
+});
+
+document.addEventListener('click', function (event) {
+  const customMenu = document.getElementById('custom-menu');
+  if (customMenu && !customMenu.contains(event.target)) {
+    customMenu.style.display = 'none';
+  }
+});
+</script>
 </body>
 
 </html>
