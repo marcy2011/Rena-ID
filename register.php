@@ -11,29 +11,92 @@ $db = new mysqli('localhost', 'username', 'password', 'my_rena');
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $db->real_escape_string($_POST['username']);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
 
-    $check_sql = "SELECT username FROM users WHERE username = '$username'";
-    $result = $db->query($check_sql);
-
-    if ($result->num_rows > 0) {
-        $error_message = "Username già utilizzato";
+    if ($password !== $confirm_password) {
+        $error_message = "Le password non coincidono";
     } else {
-        $sql = "INSERT INTO users (username, password) VALUES ('$username', '$password')";
-        if ($db->query($sql) === TRUE) {
-            $user_id = $db->insert_id;
-            $_SESSION['user_id'] = $user_id;
-            $_SESSION['username'] = $username;
-            header("Location: account.php");
-            exit();
+        if (strlen($password) < 8) {
+            $error_message = "La password deve essere di almeno 8 caratteri";
+        } elseif (!preg_match('/[0-9]/', $password)) {
+            $error_message = "La password deve contenere almeno un numero";
+        } elseif (!preg_match('/[\/\-_]/', $password)) {
+            $error_message = "La password deve contenere almeno un carattere speciale (/, -, _)";
         } else {
-            $error_message = "Errore durante la registrazione: " . $db->error;
+            $password_hash = password_hash($password, PASSWORD_DEFAULT);
+
+            $check_sql = "SELECT username FROM users WHERE username = '$username'";
+            $result = $db->query($check_sql);
+
+            if ($result->num_rows > 0) {
+                $error_message = "Username già utilizzato";
+            } else {
+                $sql = "INSERT INTO users (username, password) VALUES ('$username', '$password_hash')";
+                if ($db->query($sql) === TRUE) {
+                    $user_id = $db->insert_id;
+                    $_SESSION['user_id'] = $user_id;
+                    $_SESSION['username'] = $username;
+                    
+                    $is_external_domain = false;
+                    $external_domain = '';
+                    
+                    if (isset($_GET['external_domain']) && !empty($_GET['external_domain'])) {
+                        $external_domain = filter_var($_GET['external_domain'], FILTER_SANITIZE_URL);
+                        $is_external_domain = true;
+                    }
+                    
+                    if ($is_external_domain && !empty($external_domain)) {
+                        $token = bin2hex(random_bytes(32));
+                        $_SESSION['cross_domain_token'] = $token;
+                        
+                        $user_data = [
+                            'status' => 'success',
+                            'user_id' => $user_id,
+                            'username' => $username,
+                            'profile_pic' => null,
+                            'token' => $token
+                        ];
+                        
+                        echo "<!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Registrazione completata</title>
+                        </head>
+                        <body>
+                            <script>
+                                window.onload = function() {
+                                    if (window.opener) {
+                                        window.opener.postMessage(" . json_encode($user_data) . ", '" . $external_domain . "');
+                                        setTimeout(function() {
+                                            window.close();
+                                        }, 500);
+                                    } else {
+                                        window.location.href = '" . $external_domain . "?token=' + encodeURIComponent('" . $token . "') + 
+                                            '&user_id=' + encodeURIComponent('" . $user_id . "') + 
+                                            '&username=' + encodeURIComponent('" . $username . "');
+                                    }
+                                }
+                            </script>
+                            <p style='text-align:center; font-family: Arial; padding: 20px;'>
+                                Account creato con successo! Questa finestra si chiuderà automaticamente...
+                            </p>
+                        </body>
+                        </html>";
+                        exit();
+                    } else {
+                        header("Location: account.php");
+                        exit();
+                    }
+                } else {
+                    $error_message = "Errore durante la registrazione: " . $db->error;
+                }
+            }
         }
     }
 }
 $db->close();
 ?>
-
 <!DOCTYPE html>
 <html lang="it">
 
@@ -159,6 +222,13 @@ $db->close();
             box-shadow: 0 8px 25px rgba(74, 74, 74, 0.3);
         }
 
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         .register-link {
             display: block;
             margin-top: 20px;
@@ -256,6 +326,59 @@ $db->close();
             text-decoration: underline;
             color: white;
         }
+
+        .password-match {
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .password-match.valid {
+            color: #4ade80;
+            display: block;
+        }
+
+        .password-match.invalid {
+            color: #f87171;
+            display: block;
+        }
+
+        .password-requirements {
+            font-size: 12px;
+            margin-top: 8px;
+            color: #6b7280;
+            text-align: left;
+        }
+
+        .password-requirements ul {
+            list-style: none;
+            padding-left: 0;
+            margin-top: 5px;
+        }
+
+        .password-requirements li {
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-requirements li i {
+            margin-right: 5px;
+            font-size: 10px;
+            width: 12px;
+        }
+
+        .requirement-met {
+            color: #4ade80;
+        }
+
+        .requirement-not-met {
+            color: #f87171;
+        }
+
+        .requirement-partial {
+            color: #fbbf24;
+        }
     </style>
 </head>
 
@@ -279,7 +402,7 @@ $db->close();
 
         <h1 data-translate-en="Create Rena ID" data-translate-it="Crea Rena ID">Crea Rena ID</h1>
 
-        <form method="post" action="">
+        <form method="post" action="" id="register-form">
             <div class="form-group">
                 <label for="username">Username</label>
                 <div class="input-container">
@@ -291,14 +414,41 @@ $db->close();
             <div class="form-group">
                 <label for="password">Password</label>
                 <div class="input-container">
-                    <input type="password" id="password" name="password" placeholder="La tua password" required required
+                    <input type="password" id="password" name="password" placeholder="La tua password" required
                         data-placeholder-en="Your password" data-placeholder-it="La tua password">
                     <i class="fas fa-eye password-toggle" id="toggle-password"></i>
                 </div>
+                <div class="password-requirements">
+                    <span data-translate-en="Password requirements:" data-translate-it="Requisiti password:">Requisiti password:</span>
+                    <ul>
+                        <li id="req-length">
+                            <i class="fas fa-circle requirement-not-met"></i>
+                            <span data-translate-en="At least 8 characters" data-translate-it="Almeno 8 caratteri">Almeno 8 caratteri</span>
+                        </li>
+                        <li id="req-number">
+                            <i class="fas fa-circle requirement-not-met"></i>
+                            <span data-translate-en="At least one number" data-translate-it="Almeno un numero">Almeno un numero</span>
+                        </li>
+                        <li id="req-special">
+                            <i class="fas fa-circle requirement-not-met"></i>
+                            <span data-translate-en="At least one special character (/, -, _)" data-translate-it="Almeno un carattere speciale (/, -, _)">Almeno un carattere speciale (/, -, _)</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
-            <button type="submit" class="btn" required>
-                <i class="fas fa-sign-in-alt"></i> <span data-translate-en="Sign Up"
+            <div class="form-group">
+                <label for="confirm_password">Conferma Password</label>
+                <div class="input-container">
+                    <input type="password" id="confirm_password" name="confirm_password" placeholder="Conferma la tua password" required
+                        data-placeholder-en="Confirm your password" data-placeholder-it="Conferma la tua password">
+                    <i class="fas fa-eye password-toggle" id="toggle-confirm-password"></i>
+                </div>
+                <div id="password-match-message" class="password-match"></div>
+            </div>
+
+            <button type="submit" class="btn" id="submit-btn" disabled>
+                <i class="fas fa-user-plus"></i> <span data-translate-en="Sign Up"
                     data-translate-it="Registrati">Registrati</span>
             </button>
 
@@ -314,7 +464,7 @@ $db->close();
     <script>
         function showError(message) {
             const popup = document.getElementById('error-popup');
-            popup.textContent = message;
+            popup.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
             popup.style.top = '20px';
             setTimeout(() => {
                 popup.style.top = '-50px';
@@ -549,24 +699,106 @@ $db->close();
         }, 5000);
     }
 
-    document.getElementById('toggle-password').addEventListener('click', function() {
-        const passwordInput = document.getElementById('password');
-        const toggleIcon = this;
+    function setupPasswordToggle(passwordId, toggleId) {
+        const passwordInput = document.getElementById(passwordId);
+        const toggleIcon = document.getElementById(toggleId);
         
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            toggleIcon.classList.remove('fa-eye');
-            toggleIcon.classList.add('fa-eye-slash');
-        } else {
-            passwordInput.type = 'password';
-            toggleIcon.classList.remove('fa-eye-slash');
-            toggleIcon.classList.add('fa-eye');
+        if (passwordInput && toggleIcon) {
+            toggleIcon.addEventListener('click', function() {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    toggleIcon.classList.remove('fa-eye');
+                    toggleIcon.classList.add('fa-eye-slash');
+                } else {
+                    passwordInput.type = 'password';
+                    toggleIcon.classList.remove('fa-eye-slash');
+                    toggleIcon.classList.add('fa-eye');
+                }
+            });
         }
-    });
+    }
+
+    function checkPasswordMatch() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        const message = document.getElementById('password-match-message');
+        const submitBtn = document.getElementById('submit-btn');
+
+        if (password === '' && confirmPassword === '') {
+            message.className = 'password-match';
+            message.textContent = '';
+            return;
+        }
+
+        if (confirmPassword === '') {
+            message.className = 'password-match';
+            message.textContent = '';
+            return;
+        }
+
+        if (password === confirmPassword) {
+            message.className = 'password-match valid';
+            message.textContent = 'Le password coincidono';
+            message.setAttribute('data-translate-it', 'Le password coincidono');
+            message.setAttribute('data-translate-en', 'Passwords match');
+        } else {
+            message.className = 'password-match invalid';
+            message.textContent = 'Le password non coincidono';
+            message.setAttribute('data-translate-it', 'Le password non coincidono');
+            message.setAttribute('data-translate-en', 'Passwords do not match');
+        }
+
+        const currentLang = localStorage.getItem('preferredLanguage') || 'it';
+        if (message.textContent) {
+            message.textContent = currentLang === 'it' 
+                ? message.getAttribute('data-translate-it')
+                : message.getAttribute('data-translate-en');
+        }
+    }
+
+    function checkPasswordRequirements() {
+        const password = document.getElementById('password').value;
+        const submitBtn = document.getElementById('submit-btn');
+        
+        const lengthValid = password.length >= 8;
+        updateRequirement('length', lengthValid);
+        
+        const hasNumber = /[0-9]/.test(password);
+        updateRequirement('number', hasNumber);
+        
+        const hasSpecial = /[\/\-_]/.test(password);
+        updateRequirement('special', hasSpecial);
+        
+        const allValid = lengthValid && hasNumber && hasSpecial;
+        submitBtn.disabled = !allValid;
+        
+        return allValid;
+    }
+    
+    function updateRequirement(type, isValid) {
+        const element = document.getElementById(`req-${type}`);
+        const icon = element.querySelector('i');
+        
+        if (isValid) {
+            icon.className = 'fas fa-check-circle requirement-met';
+        } else {
+            icon.className = 'fas fa-times-circle requirement-not-met';
+        }
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
         const savedLang = localStorage.getItem('preferredLanguage') || 'it';
         translatePage(savedLang);
+
+        setupPasswordToggle('password', 'toggle-password');
+        setupPasswordToggle('confirm_password', 'toggle-confirm-password');
+
+        document.getElementById('password').addEventListener('input', function() {
+            checkPasswordRequirements();
+            checkPasswordMatch();
+        });
+
+        document.getElementById('confirm_password').addEventListener('input', checkPasswordMatch);
 
         document.querySelectorAll('.language-btn').forEach(btn => {
             if (btn.getAttribute('data-lang') === savedLang) {
@@ -580,6 +812,9 @@ $db->close();
                 
                 document.querySelectorAll('.language-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
+                
+                checkPasswordMatch();
+                checkPasswordRequirements();
             });
         });
 
@@ -587,6 +822,130 @@ $db->close();
             showError('<?php echo addslashes($error_message); ?>');
         <?php endif; ?>
     });
+</script>
+<style>
+    #custom-menu {
+      display: none;
+      position: absolute;
+      background: rgba(0, 0, 0, 0.9);
+      border-radius: 15px;
+      padding: 15px;
+      backdrop-filter: blur(20px);
+      z-index: 99999999;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    #custom-menu ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #custom-menu ul li {
+      margin-bottom: 10px;
+    }
+
+    #custom-menu ul li a {
+      display: flex;
+      align-items: center;
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    #custom-menu ul li a:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(5px);
+    }
+
+    #custom-menu ul li a img {
+      margin-right: 10px;
+      border-radius: 5px;
+    }
+
+    #custom-menu ul li a span {
+      font-size: 16px;
+    }
+
+    #custom-menu ul li a.has-svg span {
+      margin-left: 10px;
+    }
+
+    .custom-menu-svg {
+      width: 22px;
+      height: 22px;
+      max-width: 100%;
+      max-height: 100%;
+    }
+</style>
+  <div id="custom-menu">
+    <ul>
+      <li><a href="https://rena.altervista.org">
+          <img src="https://gcsapp.altervista.org/homebanner.png" alt="Home" width="20">
+          <span>Home</span>
+        </a></li>
+      <li><a href="https://rena.altervista.org/privacy-policy.html" class="has-svg">
+          <svg class="custom-menu-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M12 14.5V16.5M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288"
+              stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>Privacy Policy</span>
+        </a></li>
+      <li><a href="https://rena.altervista.org/chi-siamo.html" class="has-svg">
+          <svg class="custom-menu-svg" version="1.1" xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" fill="#ffffff" stroke="#ffffff">
+            <g>
+              <path
+                d="M256,265.308c73.252,0,132.644-59.391,132.644-132.654C388.644,59.412,329.252,0,256,0 c-73.262,0-132.643,59.412-132.643,132.654C123.357,205.917,182.738,265.308,256,265.308z">
+              </path>
+              <path
+                d="M425.874,393.104c-5.922-35.474-36-84.509-57.552-107.465c-5.829-6.212-15.948-3.628-19.504-1.427 c-27.04,16.672-58.782,26.399-92.819,26.399c-34.036,0-65.778-9.727-92.818-26.399c-3.555-2.201-13.675-4.785-19.505,1.427 c-21.55,22.956-51.628,71.991-57.551,107.465C71.573,480.444,164.877,512,256,512C347.123,512,440.427,480.444,425.874,393.104z">
+              </path>
+            </g>
+          </svg>
+          <span data-translate-it="Chi Siamo" data-translate-en="About Us">Chi Siamo</span>
+        </a></li>
+      <li><a href="https://rena.altervista.org/news.php" class="has-svg">
+          <svg class="custom-menu-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+            stroke="#ffffff">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path
+                d="M5 21H17C19.2091 21 21 19.2091 21 17V5C21 3.89543 20.1046 3 19 3H9C7.89543 3 7 3.89543 7 5V18C7 19.6569 6.65685 21 5 21C3.61929 21 3 19.8807 3 18.5V10Z"
+                stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="12" cy="8" r="1" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></circle>
+              <path d="M11 14H17" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
+              <path d="M11 17H14" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
+            </g>
+          </svg>
+          <span>News</span>
+        </a></li>
+    </ul>
+  </div>
+<script>
+document.addEventListener('contextmenu', function (event) {
+  event.preventDefault();
+  if (window.innerWidth > 768) {
+    const customMenu = document.getElementById('custom-menu');
+    if (customMenu) {
+      customMenu.style.display = 'block';
+      customMenu.style.left = event.pageX + 'px';
+      customMenu.style.top = event.pageY + 'px';
+    }
+  }
+});
+
+document.addEventListener('click', function (event) {
+  const customMenu = document.getElementById('custom-menu');
+  if (customMenu && !customMenu.contains(event.target)) {
+    customMenu.style.display = 'none';
+  }
+});
 </script>
 </body>
 
