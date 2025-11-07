@@ -288,6 +288,7 @@ $db->close();
             .login-container {
                 width: 90%;
                 padding: 30px 20px;
+                margin-top: 60px;
             }
 
             body {
