@@ -288,41 +288,41 @@ if (!empty($user_data['profile_photo'])) {
   }
 }
 
-if (isset($_POST['delete_account'])) {
-  $delete_password = $_POST['delete_password'];
-  $delete_confirmation = trim($_POST['delete_confirmation']);
+  if (isset($_POST['delete_account'])) {
+    $delete_password = $_POST['delete_password'];
+    $delete_confirmation = trim($_POST['delete_confirmation']);
 
-  $sql = "SELECT username, email, profile_photo, created_at FROM users WHERE id = ?";
-  $stmt = $db->prepare($sql);
-  $stmt->bind_param("i", $user_id);
-  $stmt->execute();
-  $result = $stmt->get_result();
-  $user = $result->fetch_assoc();
+    $sql = "SELECT username, email, profile_photo, created_at, password FROM users WHERE id = ?";
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
 
-  if (password_verify($delete_password, $user['password'])) {
-    if (strtolower($delete_confirmation) === "delete my account") {
-      if (!empty($user['profile_photo']) && file_exists($user['profile_photo'])) {
-        unlink($user['profile_photo']);
-      }
+    if ($user && password_verify($delete_password, $user['password'])) {
+      if (strtolower($delete_confirmation) === "delete my account") {
+        if (!empty($user['profile_photo']) && file_exists($user['profile_photo'])) {
+          unlink($user['profile_photo']);
+        }
 
-      $sql = "DELETE FROM users WHERE id = ?";
-      $stmt = $db->prepare($sql);
-      $stmt->bind_param("i", $user_id);
+        $sql = "DELETE FROM users WHERE id = ?";
+        $stmt = $db->prepare($sql);
+        $stmt->bind_param("i", $user_id);
 
-      if ($stmt->execute()) {
-        session_destroy();
-        header("Location: login.php?account_deleted=1");
-        exit();
+        if ($stmt->execute()) {
+          session_destroy();
+          header("Location: login.php?account_deleted=1");
+          exit();
+        } else {
+          $error = "Errore durante l'eliminazione dell'account: " . $stmt->error;
+        }
       } else {
-        $error = "Errore durante l'eliminazione dell'account: " . $stmt->error;
+        $error = "Devi digitare esattamente 'delete my account' per confermare!";
       }
     } else {
-      $error = "Devi digitare esattamente 'delete my account' per confermare!";
+      $error = "Password non corretta!";
     }
-  } else {
-    $error = "Password non corretta!";
   }
-}
 
 $sql = "SELECT username, email, profile_photo, created_at FROM users WHERE id = ?";
 $stmt = $db->prepare($sql);
@@ -494,6 +494,60 @@ migrateOldProfilePhotos($user_id, $db);
       font-size: 16px;
     }
 
+    .back-btn-mobile {
+      display: none;
+    }
+
+    .back-btn-mobile {
+      display: none;
+      position: absolute;
+      top: 40px;
+      left: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+    }
+
+    .back-btn-pc {
+      position: absolute;
+      top: 40px;
+      left: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 1000;
+    }
+
+    .back-btn-pc:hover; {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .back-btn-mobile:hover; {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
     .logout-btn {
       position: absolute;
       top: 40px;
@@ -512,6 +566,30 @@ migrateOldProfilePhotos($user_id, $db);
       align-items: center;
       gap: 8px;
       z-index: 1000px;
+    }
+
+    @media (max-width: 768px) {
+      .back-btn-mobile {
+        top: 20px;
+        left: 20px;
+        padding: 10px 16px;
+        font-size: 12px;
+        display: flex;
+      }
+      
+      .back-btn-pc {
+        display: none;
+      }
+      
+      .header {
+        padding-top: 70px !important;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
     .logout-btn:hover {
@@ -1115,8 +1193,16 @@ migrateOldProfilePhotos($user_id, $db);
 </head>
 
 <body>
+      <a class="back-btn-pc" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i>
+        <span data-translate-it="Indietro" data-translate-en="Back">Indietro</span>
+      </a>
   <div class="container">
     <div class="header">
+      <a class="back-btn-mobile" onclick="goBack()">
+        <i class="fas fa-arrow-left"></i>
+        <span data-translate-it="Indietro" data-translate-en="Back">Indietro</span>
+      </a>
       <div class="profile-section">
         <div class="profile-photo-container" onclick="openPhotoModal()">
           <?php
@@ -1124,8 +1210,7 @@ migrateOldProfilePhotos($user_id, $db);
           if ($latest_photo && file_exists($latest_photo)):
             $photo_url = $latest_photo . '?v=' . time();
             ?>
-            <img src="<?php echo htmlspecialchars($photo_url); ?>" alt="Foto Profilo" class="profile-photo"
-              id="currentPhoto">
+            <img src="<?php echo htmlspecialchars($photo_url); ?>" alt="Foto Profilo" class="profile-photo" id="currentPhoto">
           <?php else: ?>
             <div class="default-avatar" id="currentAvatar">
               <?php echo strtoupper(substr($user_data['username'], 0, 1)); ?>
@@ -2003,6 +2088,10 @@ migrateOldProfilePhotos($user_id, $db);
         customMenu.style.display = 'none';
       }
     });
+    
+function goBack() {
+  window.history.back();
+}
   </script>
 
 </body>
