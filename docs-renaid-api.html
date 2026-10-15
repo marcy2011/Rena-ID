@@ -1,0 +1,2510 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title id="page-title">Rena - Docs API Rena ID</title>
+  <link rel="icon" type="image/x-icon" href="https://rena.altervista.org/logo.png">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap">
+  <link href="https://fonts.googleapis.com/css2?family=Text+Me+One&display=swap" rel="stylesheet">
+  <link href="https://api.fontshare.com/v2/css?f[]=open-sauce-one@400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      color-scheme: dark;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      background: black;
+      color: white;
+      font-family: 'Open Sauce One', sans-serif;
+      min-height: 100vh;
+      cursor: url('cursore.png'), auto;
+      overflow-x: hidden;
+    }
+
+    .floating-navbar {
+      position: fixed;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50px;
+      padding: 15px 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 90%;
+      max-width: 1000px;
+      z-index: 1000;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    .floating-navbar:hover {
+      background: rgba(0, 0, 0, 0.4);
+      transform: translateX(-50%) translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .navbar-logo {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .header-brand {
+      text-decoration: none;
+    }
+
+    .header-brand:hover {
+      transform: none;
+    }
+
+    .rena-text {
+      font-family: 'Text Me One', sans-serif;
+      font-size: 2.0em;
+      color: white;
+      text-decoration: none;
+      font-weight: normal;
+      letter-spacing: 2px;
+      text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3);
+      transition: all 0.3s ease;
+      line-height: 1;
+    }
+
+    .navbar-nav {
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      flex: 1;
+      justify-content: center;
+    }
+
+    .nav-link {
+      color: white;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border-radius: 20px;
+      transition: all 0.3s ease;
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      line-height: 1;
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .nav-link.active {
+      background: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 2px 8px rgba(255, 255, 255, 0.2);
+    }
+
+    .navbar-account {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-shrink: 0;
+    }
+
+    .menu-icon {
+      width: 28px;
+      height: 28px;
+      transition: none;
+      display: block;
+    }
+
+    .profile-menu-container {
+      position: relative;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #profile-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .profile-pic {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .profile-pic:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    .default-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 18px;
+      font-weight: 600;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .profile-menu {
+      display: none;
+      position: absolute;
+      top: 65px;
+      right: -15px;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      padding: 15px;
+      width: 200px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      z-index: 1000;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .profile-menu.active {
+      display: block;
+    }
+
+    .profile-menu-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      margin-bottom: 5px;
+    }
+
+    .profile-menu-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .profile-menu-item i {
+      margin-right: 10px;
+      width: 20px;
+      text-align: center;
+    }
+
+    .profile-menu-divider {
+      height: 1px;
+      background: rgba(255, 255, 255, 0.1);
+      margin: 10px 0;
+    }
+
+    .language-option {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .language-option:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .language-option.active {
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .language-content {
+      display: flex;
+      align-items: center;
+    }
+
+    .language-flag {
+      width: 20px;
+      height: 15px;
+      margin-right: 10px;
+      border-radius: 3px;
+    }
+
+    .check-icon {
+      width: 16px;
+      height: 16px;
+      stroke: #4ade80;
+      stroke-width: 2;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .language-option.active .check-icon {
+      opacity: 1;
+    }
+
+    @media screen and (max-width: 768px) {
+      .floating-navbar {
+        width: 95%;
+        padding: 12px 20px;
+        top: 20px;
+        justify-content: space-between;
+      }
+
+      .profile-menu-container {
+        order: 1;
+        flex-grow: 1;
+        display: flex;
+        justify-content: flex-start;
+        margin-left: -7px;
+      }
+
+      .navbar-logo {
+        order: 2;
+        position: static;
+        left: auto;
+        transform: none;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-grow: 0;
+      }
+
+      .navbar-nav {
+        display: none;
+      }
+
+      .navbar-account {
+        order: 3;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: 0;
+        flex-grow: 1;
+        justify-content: flex-end;
+      }
+
+      .rena-text {
+        font-size: 1.6em;
+        letter-spacing: 1px;
+      }
+
+      .menu-icon {
+        width: 28px;
+        height: 28px;
+        transform: translateY(-1px) scaleX(-1);
+      }
+
+      .profile-menu {
+        left: 0 !important;
+        right: auto !important;
+        transform: none !important;
+      }
+    }
+
+    @media screen and (min-width: 769px) {
+      .floating-navbar {
+        top: 30px;
+        max-width: 1100px;
+      }
+
+      .navbar-nav {
+        display: flex;
+        order: 2;
+      }
+
+      .navbar-logo {
+        order: 1;
+      }
+
+      .profile-menu-container {
+        order: 3;
+      }
+
+      .navbar-account {
+        display: none;
+      }
+
+      .rena-text {
+        font-size: 1.5em;
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+      .floating-navbar {
+        padding: 8px 16px;
+      }
+
+      .rena-text {
+        font-size: 1.4em;
+      }
+
+      .menu-icon {
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    main {
+      padding-top: 120px;
+    }
+
+    #custom-menu {
+      display: none;
+      position: absolute;
+      background: rgba(0, 0, 0, 0.9);
+      border-radius: 15px;
+      padding: 15px;
+      backdrop-filter: blur(20px);
+      z-index: 99999999;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    #custom-menu ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #custom-menu ul li {
+      margin-bottom: 10px;
+    }
+
+    #custom-menu ul li a {
+      display: flex;
+      align-items: center;
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    #custom-menu ul li a:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateX(5px);
+    }
+
+    #custom-menu ul li a img {
+      margin-right: 10px;
+      border-radius: 5px;
+    }
+
+    #custom-menu ul li a span {
+      font-size: 16px;
+    }
+
+    #custom-menu ul li a.has-svg span {
+      margin-left: 10px;
+    }
+
+    .custom-menu-svg {
+      width: 22px;
+      height: 22px;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    ::selection {
+      background-color: white;
+      color: black;
+    }
+
+    *:focus {
+      outline: none;
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
+    }
+
+    *::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    *::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.22);
+      border-radius: 10px;
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.4);
+      border: 2px solid transparent;
+      background-clip: padding-box;
+    }
+
+    *::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    .docs {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 30px 20px 80px;
+    }
+
+    .docs-hero {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .docs-title {
+      font-size: 2.6em;
+      margin-bottom: 14px;
+      overflow-wrap: anywhere;
+    }
+
+    .docs-lead {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 1.1em;
+      line-height: 1.6;
+      max-width: 680px;
+      margin: 0 auto 24px;
+      overflow-wrap: anywhere;
+    }
+
+    .docs-toc {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .docs-toc a {
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.06);
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+      transition: all .3s ease;
+    }
+
+    .docs-toc a:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+    }
+
+    .section {
+      margin-bottom: 48px;
+      scroll-margin-top: 130px;
+      min-width: 0;
+    }
+
+    .section>h2 {
+      font-size: 1.7em;
+      margin-bottom: 8px;
+      overflow-wrap: anywhere;
+    }
+
+    .section>.sub {
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 20px;
+      line-height: 1.55;
+      overflow-wrap: anywhere;
+    }
+
+    .card {
+      background: black;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 20px;
+      padding: 26px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      min-width: 0;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr));
+      gap: 16px;
+    }
+
+    .step {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px;
+      min-width: 0;
+    }
+
+    .step .num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: white;
+      color: black;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .step h3 {
+      font-size: 1.05em;
+      margin-bottom: 6px;
+      overflow-wrap: anywhere;
+    }
+
+    .step p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .field {
+      margin-bottom: 18px;
+      text-align: left;
+      min-width: 0;
+    }
+
+    .field>label {
+      display: block;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 6px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .docs input[type=text],
+    .docs textarea {
+      width: 100%;
+      min-width: 0;
+      padding: 13px 15px;
+      border: 2px solid #2a2a2a;
+      border-radius: 12px;
+      background: #141414;
+      color: white;
+      font-size: 15px;
+      font-family: inherit;
+    }
+
+    .docs input[type=text]:focus,
+    .docs textarea:focus {
+      border-color: rgba(255, 255, 255, 0.6);
+    }
+
+    .docs textarea {
+      min-height: 84px;
+      resize: vertical;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 14px;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .row>input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .row>button {
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .radio-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+      gap: 12px;
+    }
+
+    .radio-card {
+      border: 2px solid #2a2a2a;
+      border-radius: 14px;
+      padding: 14px;
+      cursor: pointer;
+      display: block;
+      background: #141414;
+      transition: border-color .2s;
+      min-width: 0;
+    }
+
+    .radio-card:has(input:checked) {
+      border-color: white;
+      background: #1c1c1c;
+    }
+
+    .radio-card input {
+      margin-right: 8px;
+    }
+
+    .radio-card strong {
+      font-size: 15px;
+      overflow-wrap: anywhere;
+    }
+
+    .radio-card span {
+      display: block;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.65);
+      margin-top: 4px;
+      margin-left: 24px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+
+    .btn-doc {
+      padding: 12px 26px;
+      background: white;
+      color: black;
+      border: none;
+      border-radius: 25px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      text-decoration: none;
+      display: inline-block;
+      transition: all .3s ease;
+    }
+
+    .btn-doc:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-doc:disabled {
+      opacity: .5;
+      cursor: default;
+      transform: none;
+    }
+
+    .btn-ghost {
+      padding: 9px 18px;
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .3s ease;
+    }
+
+    .btn-ghost:hover {
+      background: rgba(255, 255, 255, 0.18);
+    }
+
+    .btn-danger {
+      border-color: rgba(255, 107, 107, 0.5);
+      color: #ff8a8a;
+    }
+
+    .msg {
+      margin-top: 14px;
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .msg.err {
+      color: #ff6b6b;
+    }
+
+    .msg.ok {
+      color: #4ade80;
+    }
+
+    .gate {
+      text-align: center;
+      padding: 10px 0;
+    }
+
+    .gate p {
+      color: rgba(255, 255, 255, 0.75);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .cred {
+      margin-top: 22px;
+      border: 1px solid rgba(74, 222, 128, 0.5);
+      background: rgba(74, 222, 128, 0.07);
+      border-radius: 16px;
+      padding: 18px;
+      min-width: 0;
+    }
+
+    .cred h3 {
+      margin-bottom: 12px;
+      color: #4ade80;
+      font-size: 1.05em;
+    }
+
+    .cred-row {
+      margin-bottom: 12px;
+    }
+
+    .cred-row small {
+      display: block;
+      color: rgba(255, 255, 255, 0.65);
+      margin-bottom: 4px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .cred-val {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .cred-val code {
+      flex: 1;
+      min-width: 0;
+      background: #101010;
+      border: 1px solid #2a2a2a;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 13px;
+      overflow-wrap: anywhere;
+      word-break: break-all;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+    }
+
+    .cred-val .btn-ghost {
+      flex-shrink: 0;
+    }
+
+    .warn {
+      font-size: 13px;
+      color: #fbbf24;
+      margin-top: 8px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .app {
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      min-width: 0;
+    }
+
+    .app-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .app-name {
+      font-weight: 700;
+      font-size: 1.05em;
+      overflow-wrap: anywhere;
+    }
+
+    .badge {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.12);
+      margin-left: 8px;
+      font-weight: 500;
+      display: inline-block;
+    }
+
+    .app ul {
+      margin: 8px 0 12px 18px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.75);
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      word-break: break-all;
+    }
+
+    .app-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ep {
+      margin-bottom: 18px;
+      min-width: 0;
+    }
+
+    .ep-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 8px;
+    }
+
+    .method {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background: white;
+      color: black;
+    }
+
+    .ep-url {
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      min-width: 0;
+    }
+
+    .tbl-wrap {
+      overflow-x: auto;
+      margin: 10px 0;
+      max-width: 100%;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 9px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      vertical-align: top;
+    }
+
+    th {
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    td:first-child {
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      white-space: nowrap;
+    }
+
+    td {
+      overflow-wrap: anywhere;
+    }
+
+    .note {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.75);
+      line-height: 1.55;
+      margin-top: 8px;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: transparent;
+      color: white;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .tab.active {
+      background: white;
+      color: black;
+    }
+
+    .tips {
+      list-style: none;
+    }
+
+    .tips li {
+      padding: 12px 0 12px 34px;
+      position: relative;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      line-height: 1.55;
+      font-size: 15px;
+      color: rgba(255, 255, 255, 0.88);
+      overflow-wrap: anywhere;
+    }
+
+    .tips li:last-child {
+      border-bottom: none;
+    }
+
+    .tips li i {
+      position: absolute;
+      left: 4px;
+      top: 15px;
+      color: #4ade80;
+    }
+
+    .tips li.bad i {
+      color: #ff6b6b;
+    }
+
+    .code-wrap {
+      border: 1px solid #2a2a2a;
+      border-radius: 14px;
+      background: #0d0d0d;
+      overflow: hidden;
+      min-width: 0;
+      max-width: 100%;
+    }
+
+    .code-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 8px 8px 16px;
+      background: #141414;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .code-lang {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+    }
+
+    .code-bar .btn-ghost {
+      padding: 6px 14px;
+      font-size: 13px;
+    }
+
+    pre {
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 16px 18px;
+      overflow: auto;
+      font-size: 13px;
+      line-height: 1.6;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      max-height: 560px;
+      tab-size: 2;
+      -webkit-overflow-scrolling: touch;
+      overflow-wrap: normal;
+      word-break: normal;
+    }
+
+    pre code {
+      display: block;
+      width: max-content;
+      min-width: 100%;
+      font: inherit;
+      color: #d4d4d4;
+      white-space: pre;
+    }
+
+    .tk-c {
+      color: #6a9955;
+      font-style: italic;
+    }
+
+    .tk-s {
+      color: #ce9178;
+    }
+
+    .tk-k {
+      color: #569cd6;
+    }
+
+    .tk-kc {
+      color: #c586c0;
+    }
+
+    .tk-n {
+      color: #b5cea8;
+    }
+
+    .tk-f {
+      color: #dcdcaa;
+    }
+
+    .tk-v {
+      color: #9cdcfe;
+    }
+
+    .tk-p {
+      color: #9cdcfe;
+    }
+
+    .tk-t {
+      color: #4ec9b0;
+    }
+
+    .tk-o {
+      color: #4fc1ff;
+    }
+
+    .tk-r {
+      color: #d16969;
+    }
+
+    .tk-g {
+      color: #569cd6;
+      font-weight: 600;
+    }
+
+    .tk-u {
+      color: #ce9178;
+      text-decoration: underline;
+      text-decoration-color: rgba(206, 145, 120, 0.4);
+    }
+
+    .tk-fl {
+      color: #d7ba7d;
+    }
+
+    @media screen and (max-width: 768px) {
+      main {
+        padding-top: 100px;
+      }
+
+      .docs-title {
+        font-size: 1.9em;
+      }
+
+      .docs {
+        padding-top: 10px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+    }
+
+    @media screen and (max-width: 600px) {
+      .docs {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .docs-lead {
+        font-size: 1em;
+      }
+
+      .section>h2 {
+        font-size: 1.4em;
+      }
+
+      .card {
+        padding: 16px;
+        border-radius: 16px;
+      }
+
+      .docs input[type=text],
+      .docs textarea {
+        font-size: 16px;
+      }
+
+      .btn-doc {
+        width: 100%;
+        text-align: center;
+      }
+
+      .cred-val {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .cred-val .btn-ghost {
+        align-self: flex-end;
+      }
+
+      .app-actions .btn-ghost {
+        flex: 1 1 auto;
+      }
+
+      .badge {
+        margin-left: 0;
+        margin-top: 4px;
+      }
+
+      .app-name {
+        display: block;
+      }
+
+      pre {
+        font-size: 12px;
+        padding: 14px;
+        max-height: 480px;
+      }
+
+      .tab {
+        padding: 7px 13px;
+        font-size: 13px;
+      }
+
+      .tbl-wrap {
+        overflow-x: visible;
+      }
+
+      table,
+      tbody,
+      tr,
+      td {
+        display: block;
+        width: 100%;
+      }
+
+      tr:has(> th) {
+        display: none;
+      }
+
+      tr {
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      tr:last-child {
+        border-bottom: none;
+      }
+
+      td {
+        border: none;
+        padding: 2px 0;
+      }
+
+      td:first-child {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        color: #fff;
+        font-weight: 600;
+      }
+
+      td:not(:first-child) {
+        color: rgba(255, 255, 255, 0.75);
+      }
+    }
+
+    @media screen and (max-width: 380px) {
+      .row {
+        flex-direction: column;
+      }
+
+      .row>button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="floating-navbar">
+    <div class="profile-menu-container">
+      <div id="profile-button">
+        <div class="default-avatar">
+          <i class="fas fa-user"></i>
+        </div>
+      </div>
+      <div class="profile-menu" id="profile-menu">
+        <a href="account.php" class="profile-menu-item">
+          <i class="fas fa-user"></i>
+          <span data-translate-it="Accedi" data-translate-en="Login">Accedi</span>
+        </a>
+        <div class="profile-menu-divider"></div>
+        <div class="profile-menu-item" style="pointer-events: none; opacity: 0.8;">
+          <i class="fas fa-language"></i>
+          <span data-translate-it="Lingua" data-translate-en="Language">Lingua</span>
+        </div>
+        <div class="language-option" data-lang="it">
+          <div class="language-content">
+            <img src="https://renadeveloper.altervista.org/bandierait.png" class="language-flag" alt="Italiano">
+            <span>Italiano</span>
+          </div>
+          <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <div class="language-option" data-lang="en">
+          <div class="language-content">
+            <img src="https://renadeveloper.altervista.org/bandieraen.png" class="language-flag" alt="English">
+            <span>English</span>
+          </div>
+          <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="navbar-logo">
+      <a class="header-brand" href="https://rena.altervista.org">
+        <span class="rena-text">RENA</span>
+      </a>
+    </div>
+
+    <div class="navbar-nav">
+      <a href="https://rena.altervista.org" class="nav-link">
+        <img src="https://gcsapp.altervista.org/homebanner.png" alt="Home" width="20">
+        <span>Home</span>
+      </a>
+      <a href="https://rena.altervista.org/news.php" class="nav-link">
+        <svg class="custom-menu-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff">
+          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+          <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+          <g id="SVGRepo_iconCarrier">
+            <path d="M5 21H17C19.2091 21 21 19.2091 21 17V5C21 3.89543 20.1046 3 19 3H9C7.89543 3 7 3.89543 7 5V18C7 19.6569 6.65685 21 5 21C3.61929 21 3 19.8807 3 18.5V10Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            <circle cx="12" cy="8" r="1" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></circle>
+            <path d="M11 14H17" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
+            <path d="M11 17H14" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
+          </g>
+        </svg>
+        <span>News</span>
+      </a>
+      <a href="https://rena.altervista.org/chi-siamo.html" class="nav-link">
+        <svg class="custom-menu-svg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" fill="#ffffff" stroke="#ffffff">
+          <g>
+            <path d="M256,265.308c73.252,0,132.644-59.391,132.644-132.654C388.644,59.412,329.252,0,256,0 c-73.262,0-132.643,59.412-132.643,132.654C123.357,205.917,182.738,265.308,256,265.308z"></path>
+            <path d="M425.874,393.104c-5.922-35.474-36-84.509-57.552-107.465c-5.829-6.212-15.948-3.628-19.504-1.427 c-27.04,16.672-58.782,26.399-92.819,26.399c-34.036,0-65.778-9.727-92.818-26.399c-3.555-2.201-13.675-4.785-19.505,1.427 c-21.55,22.956-51.628,71.991-57.551,107.465C71.573,480.444,164.877,512,256,512C347.123,512,440.427,480.444,425.874,393.104z"></path>
+          </g>
+        </svg>
+        <span data-translate-it="Chi Siamo" data-translate-en="About Us">Chi Siamo</span>
+      </a>
+      <a href="https://rena.altervista.org/privacy-policy.html" class="nav-link">
+        <svg class="custom-menu-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 14.5V16.5M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <span data-translate-it="Privacy Policy" data-translate-en="Privacy Policy">Privacy Policy</span>
+      </a>
+    </div>
+
+    <div class="navbar-account">
+      <div class="account-menu">
+        <a href="https://rena.altervista.org/menu.html">
+          <svg class="menu-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" transform="rotate(0)matrix(-1, 0, 0, 1, 0, 0)" stroke="#ffffff">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path d="M4 6H20M4 12H14M4 18H9" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </g>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div id="custom-menu">
+    <ul>
+      <li>
+        <a href="https://rena.altervista.org">
+          <img src="https://gcsapp.altervista.org/homebanner.png" alt="Home" width="20">
+          <span>Home</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://rena.altervista.org/privacy-policy.html" class="has-svg">
+          <svg class="custom-menu-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 14.5V16.5M7 10.0288C7.47142 10 8.05259 10 8.8 10H15.2C15.9474 10 16.5286 10 17 10.0288M7 10.0288C6.41168 10.0647 5.99429 10.1455 5.63803 10.327C5.07354 10.6146 4.6146 11.0735 4.32698 11.638C4 12.2798 4 13.1198 4 14.8V16.2C4 17.8802 4 18.7202 4.32698 19.362C4.6146 19.9265 5.07354 20.3854 5.63803 20.673C6.27976 21 7.11984 21 8.8 21H15.2C16.8802 21 17.7202 21 18.362 20.673C18.9265 20.3854 19.3854 19.9265 19.673 19.362C20 18.7202 20 17.8802 20 16.2V14.8C20 13.1198 20 12.2798 19.673 11.638C19.3854 11.0735 18.9265 10.6146 18.362 10.327C18.0057 10.1455 17.5883 10.0647 17 10.0288M7 10.0288V8C7 5.23858 9.23858 3 12 3C14.7614 3 17 5.23858 17 8V10.0288" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          <span>Privacy Policy</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://rena.altervista.org/chi-siamo.html" class="has-svg">
+          <svg class="custom-menu-svg" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" fill="#ffffff" stroke="#ffffff">
+            <g>
+              <path d="M256,265.308c73.252,0,132.644-59.391,132.644-132.654C388.644,59.412,329.252,0,256,0 c-73.262,0-132.643,59.412-132.643,132.654C123.357,205.917,182.738,265.308,256,265.308z"></path>
+              <path d="M425.874,393.104c-5.922-35.474-36-84.509-57.552-107.465c-5.829-6.212-15.948-3.628-19.504-1.427 c-27.04,16.672-58.782,26.399-92.819,26.399c-34.036,0-65.778-9.727-92.818-26.399c-3.555-2.201-13.675-4.785-19.505,1.427 c-21.55,22.956-51.628,71.991-57.551,107.465C71.573,480.444,164.877,512,256,512C347.123,512,440.427,480.444,425.874,393.104z"></path>
+            </g>
+          </svg>
+          <span data-translate-it="Chi Siamo" data-translate-en="About Us">Chi Siamo</span>
+        </a>
+      </li>
+      <li>
+        <a href="https://rena.altervista.org/news.php" class="has-svg">
+          <svg class="custom-menu-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="#ffffff">
+            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+            <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+            <g id="SVGRepo_iconCarrier">
+              <path d="M5 21H17C19.2091 21 21 19.2091 21 17V5C21 3.89543 20.1046 3 19 3H9C7.89543 3 7 3.89543 7 5V18C7 19.6569 6.65685 21 5 21C3.61929 21 3 19.8807 3 18.5V10Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+              <circle cx="12" cy="8" r="1" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></circle>
+              <path d="M11 14H17" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
+              <path d="M11 17H14" stroke="#ffffff" stroke-width="2" stroke-linecap="round"></path>
+            </g>
+          </svg>
+          <span>News</span>
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <main>
+    <div class="docs">
+
+      <header class="docs-hero">
+        <h1 class="docs-title"><i class="fas fa-id-badge"></i> Rena ID API</h1>
+        <p class="docs-lead"
+          data-translate-it="Aggiungi «Accedi con Rena ID» al tuo sito o alla tua app in pochi minuti. Ricevi username e foto profilo dell'utente: mai la sua password, mai la sua email."
+          data-translate-en="Add “Sign in with Rena ID” to your website or app in minutes. You receive the user's username and profile photo: never their password, never their email.">Aggiungi «Accedi con Rena ID» al tuo sito o alla tua app in pochi minuti. Ricevi username e foto profilo dell'utente: mai la sua password, mai la sua email.</p>
+        <nav class="docs-toc">
+          <a href="#come-funziona" data-translate-it="Come funziona" data-translate-en="How it works">Come funziona</a>
+          <a href="#registra" data-translate-it="Registra la tua app" data-translate-en="Register your app">Registra la tua app</a>
+          <a href="#endpoint" data-translate-it="Endpoint" data-translate-en="Endpoints">Endpoint</a>
+          <a href="#esempi" data-translate-it="Esempi di codice" data-translate-en="Code examples">Esempi di codice</a>
+          <a href="#sicurezza" data-translate-it="Buone pratiche" data-translate-en="Best practices">Buone pratiche</a>
+        </nav>
+      </header>
+
+      <section class="section" id="come-funziona">
+        <h2 data-translate-it="Come funziona" data-translate-en="How it works">Come funziona</h2>
+        <p class="sub"
+          data-translate-it="Rena ID usa lo standard OAuth 2.0 (Authorization Code con PKCE), lo stesso di «Accedi con Google». Servono quattro passaggi."
+          data-translate-en="Rena ID uses the OAuth 2.0 standard (Authorization Code with PKCE), the same as “Sign in with Google”. Four steps are enough.">Rena ID usa lo standard OAuth 2.0 (Authorization Code con PKCE), lo stesso di «Accedi con Google». Servono quattro passaggi.</p>
+        <div class="steps">
+          <div class="step">
+            <div class="num">1</div>
+            <h3 data-translate-it="Registra la tua app" data-translate-en="Register your app">Registra la tua app</h3>
+            <p data-translate-it="Qui sotto: scegli un nome e l'indirizzo di ritorno. Ottieni il tuo client_id (e il secret)."
+              data-translate-en="Below: pick a name and the return address. You get your client_id (and secret).">Qui sotto: scegli un nome e l'indirizzo di ritorno. Ottieni il tuo client_id (e il secret).</p>
+          </div>
+          <div class="step">
+            <div class="num">2</div>
+            <h3 data-translate-it="Manda l'utente a Rena ID" data-translate-en="Send the user to Rena ID">Manda l'utente a Rena ID</h3>
+            <p data-translate-it="L'utente accede e approva la condivisione di username e foto."
+              data-translate-en="The user signs in and approves sharing their username and photo.">L'utente accede e approva la condivisione di username e foto.</p>
+          </div>
+          <div class="step">
+            <div class="num">3</div>
+            <h3 data-translate-it="Scambia il codice" data-translate-en="Exchange the code">Scambia il codice</h3>
+            <p data-translate-it="Rena ID rimanda l'utente da te con un codice monouso. Il tuo server lo cambia con un token."
+              data-translate-en="Rena ID sends the user back with a one-time code. Your server swaps it for a token.">Rena ID rimanda l'utente da te con un codice monouso. Il tuo server lo cambia con un token.</p>
+          </div>
+          <div class="step">
+            <div class="num">4</div>
+            <h3 data-translate-it="Leggi il profilo" data-translate-en="Read the profile">Leggi il profilo</h3>
+            <p data-translate-it="Con il token ottieni id, username e foto, e crei la sessione sul tuo sito."
+              data-translate-en="With the token you get id, username and photo, and create the session on your site.">Con il token ottieni id, username e foto, e crei la sessione sul tuo sito.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="registra">
+        <h2 data-translate-it="Registra la tua app" data-translate-en="Register your app">Registra la tua app</h2>
+        <p class="sub"
+          data-translate-it="Registrare il tuo dominio richiede un minuto: serve solo dire a Rena ID a quale indirizzo può rimandare gli utenti dopo il login."
+          data-translate-en="Registering your domain takes a minute: you just tell Rena ID which address it may send users back to after login.">Registrare il tuo dominio richiede un minuto: serve solo dire a Rena ID a quale indirizzo può rimandare gli utenti dopo il login.</p>
+
+        <div class="card">
+          <div class="gate hidden" id="gate-login">
+            <p data-translate-it="Per registrare un'app devi accedere con il tuo account Rena."
+              data-translate-en="To register an app you need to sign in with your Rena account.">Per registrare un'app devi accedere con il tuo account Rena.</p>
+            <a class="btn-doc" id="gate-link" href="login.php" data-translate-it="Accedi a Rena" data-translate-en="Sign in to Rena">Accedi a Rena</a>
+          </div>
+
+          <div id="reg-area" class="hidden">
+            <div class="field">
+              <label for="app-name" data-translate-it="Nome dell'app" data-translate-en="App name">Nome dell'app</label>
+              <input type="text" id="app-name" maxlength="60" placeholder="Il mio sito" autocomplete="off">
+              <div class="hint" data-translate-it="Gli utenti lo vedranno nella schermata di consenso." data-translate-en="Users will see it on the consent screen.">Gli utenti lo vedranno nella schermata di consenso.</div>
+            </div>
+
+            <div class="field">
+              <label data-translate-it="Tipo di app" data-translate-en="App type">Tipo di app</label>
+              <div class="radio-cards">
+                <label class="radio-card">
+                  <input type="radio" name="app-type" value="confidential" checked>
+                  <strong data-translate-it="Sito con backend" data-translate-en="Website with a backend">Sito con backend</strong>
+                  <span data-translate-it="PHP, Node, Python… Ricevi un client secret da tenere sul server. Consigliato."
+                    data-translate-en="PHP, Node, Python… You get a client secret to keep on your server. Recommended.">PHP, Node, Python… Ricevi un client secret da tenere sul server. Consigliato.</span>
+                </label>
+                <label class="radio-card">
+                  <input type="radio" name="app-type" value="public">
+                  <strong data-translate-it="App mobile o sito solo front-end" data-translate-en="Mobile app or front-end only site">App mobile o sito solo front-end</strong>
+                  <span data-translate-it="Nessun secret (non si può nascondere): la sicurezza è garantita da PKCE."
+                    data-translate-en="No secret (it can't be hidden): security relies on PKCE.">Nessun secret (non si può nascondere): la sicurezza è garantita da PKCE.</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="field">
+              <label for="redirect-uris" data-translate-it="URL di callback" data-translate-en="Callback URL">URL di callback</label>
+              <div class="row" style="margin-bottom:8px">
+                <input type="text" id="dom" placeholder="miosito.it" autocomplete="off">
+                <button type="button" class="btn-ghost" onclick="suggestCallback()" data-translate-it="Suggerisci" data-translate-en="Suggest">Suggerisci</button>
+              </div>
+              <textarea id="redirect-uris" placeholder="https://miosito.it/auth/rena/callback" spellcheck="false"></textarea>
+              <div class="hint"
+                data-translate-it="Scrivi il tuo dominio e premi «Suggerisci», oppure inserisci gli indirizzi a mano (uno per riga, massimo 5). Deve essere identico a quello usato nel codice: https, senza # né *. Per i test in locale va bene http://localhost:3000/callback."
+                data-translate-en="Type your domain and press “Suggest”, or enter addresses by hand (one per line, max 5). It must match the one used in your code exactly: https, no # or *. For local testing http://localhost:3000/callback is fine.">Scrivi il tuo dominio e premi «Suggerisci», oppure inserisci gli indirizzi a mano (uno per riga, massimo 5). Deve essere identico a quello usato nel codice: https, senza # né *. Per i test in locale va bene http://localhost:3000/callback.</div>
+            </div>
+
+            <button type="button" class="btn-doc" id="btn-create" onclick="createApp()" data-translate-it="Registra app" data-translate-en="Register app">Registra app</button>
+            <div class="msg" id="reg-msg"></div>
+
+            <div class="cred hidden" id="cred-box">
+              <h3 data-translate-it="App registrata!" data-translate-en="App registered!">App registrata!</h3>
+              <div class="cred-row">
+                <small>client_id</small>
+                <div class="cred-val">
+                  <code id="cred-id"></code>
+                  <button class="btn-ghost" onclick="copyText('cred-id', this)" data-translate-it="Copia" data-translate-en="Copy">Copia</button>
+                </div>
+              </div>
+              <div class="cred-row" id="cred-secret-row">
+                <small>client_secret</small>
+                <div class="cred-val">
+                  <code id="cred-secret"></code>
+                  <button class="btn-ghost" onclick="copyText('cred-secret', this)" data-translate-it="Copia" data-translate-en="Copy">Copia</button>
+                </div>
+                <div class="warn"
+                  data-translate-it="Salvalo ora in un posto sicuro (variabile d'ambiente o file fuori dalla cartella pubblica). Non verrà mostrato di nuovo: se lo perdi puoi generarne uno nuovo."
+                  data-translate-en="Save it now somewhere safe (environment variable or a file outside the public folder). It won't be shown again: if you lose it you can generate a new one.">Salvalo ora in un posto sicuro (variabile d'ambiente o file fuori dalla cartella pubblica). Non verrà mostrato di nuovo: se lo perdi puoi generarne uno nuovo.</div>
+              </div>
+              <a class="btn-ghost" href="#esempi" style="text-decoration:none;display:inline-block" data-translate-it="Vai agli esempi di codice ↓" data-translate-en="Go to code examples ↓">Vai agli esempi di codice ↓</a>
+            </div>
+
+            <h3 style="margin-top:34px" data-translate-it="Le tue app" data-translate-en="Your apps">Le tue app</h3>
+            <div id="apps"></div>
+            <div class="hint" id="apps-empty" data-translate-it="Non hai ancora registrato nessuna app." data-translate-en="You haven't registered any app yet.">Non hai ancora registrato nessuna app.</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="endpoint">
+        <h2 data-translate-it="Endpoint" data-translate-en="Endpoints">Endpoint</h2>
+        <p class="sub" data-translate-it="Base URL: https://rena.altervista.org/oauth" data-translate-en="Base URL: https://rena.altervista.org/oauth">Base URL: https://rena.altervista.org/oauth</p>
+
+        <div class="card">
+          <div class="ep">
+            <div class="ep-head">
+              <span class="method">GET</span>
+              <span class="ep-url">/oauth/authorize.php</span>
+            </div>
+            <p class="note" data-translate-it="Apri questo indirizzo nel browser dell'utente (redirect, non una chiamata AJAX)." data-translate-en="Open this address in the user's browser (a redirect, not an AJAX call).">Apri questo indirizzo nel browser dell'utente (redirect, non una chiamata AJAX).</p>
+            <div class="tbl-wrap">
+              <table>
+                <tr>
+                  <th>Parametro</th>
+                  <th></th>
+                </tr>
+                <tr>
+                  <td>response_type</td>
+                  <td>code</td>
+                </tr>
+                <tr>
+                  <td>client_id</td>
+                  <td data-translate-it="Il client_id della tua app." data-translate-en="Your app's client_id.">Il client_id della tua app.</td>
+                </tr>
+                <tr>
+                  <td>redirect_uri</td>
+                  <td data-translate-it="Uno degli URL di callback registrati, identico carattere per carattere." data-translate-en="One of your registered callback URLs, exactly identical.">Uno degli URL di callback registrati, identico carattere per carattere.</td>
+                </tr>
+                <tr>
+                  <td>state</td>
+                  <td data-translate-it="Valore casuale che generi tu e ricontrolli al ritorno (protegge da CSRF)." data-translate-en="Random value you generate and re-check on return (CSRF protection).">Valore casuale che generi tu e ricontrolli al ritorno (protegge da CSRF).</td>
+                </tr>
+                <tr>
+                  <td>scope</td>
+                  <td data-translate-it="profile (opzionale, è l'unico disponibile)." data-translate-en="profile (optional, it's the only one).">profile (opzionale, è l'unico disponibile).</td>
+                </tr>
+                <tr>
+                  <td>code_challenge</td>
+                  <td data-translate-it="PKCE: base64url(SHA-256(code_verifier)). Obbligatorio per le app senza secret, consigliato sempre." data-translate-en="PKCE: base64url(SHA-256(code_verifier)). Required for apps without a secret, recommended always.">PKCE: base64url(SHA-256(code_verifier)). Obbligatorio per le app senza secret, consigliato sempre.</td>
+                </tr>
+                <tr>
+                  <td>code_challenge_method</td>
+                  <td>S256</td>
+                </tr>
+              </table>
+            </div>
+            <p class="note"
+              data-translate-it="Ritorno: redirect_uri?code=…&state=… oppure redirect_uri?error=access_denied&state=… se l'utente annulla. Il codice vale 2 minuti e si usa una volta sola."
+              data-translate-en="Return: redirect_uri?code=…&state=… or redirect_uri?error=access_denied&state=… if the user cancels. The code is valid for 2 minutes and works once.">Ritorno: redirect_uri?code=…&state=… oppure redirect_uri?error=access_denied&state=… se l'utente annulla. Il codice vale 2 minuti e si usa una volta sola.</p>
+          </div>
+
+          <div class="ep">
+            <div class="ep-head">
+              <span class="method">POST</span>
+              <span class="ep-url">/oauth/token.php</span>
+            </div>
+            <p class="note" data-translate-it="Chiamalo dal tuo server (application/x-www-form-urlencoded)." data-translate-en="Call it from your server (application/x-www-form-urlencoded).">Chiamalo dal tuo server (application/x-www-form-urlencoded).</p>
+            <div class="tbl-wrap">
+              <table>
+                <tr>
+                  <th>Parametro</th>
+                  <th></th>
+                </tr>
+                <tr>
+                  <td>grant_type</td>
+                  <td>authorization_code</td>
+                </tr>
+                <tr>
+                  <td>code</td>
+                  <td data-translate-it="Il codice ricevuto." data-translate-en="The code you received.">Il codice ricevuto.</td>
+                </tr>
+                <tr>
+                  <td>redirect_uri</td>
+                  <td data-translate-it="Lo stesso usato nel passaggio precedente." data-translate-en="Same as in the previous step.">Lo stesso usato nel passaggio precedente.</td>
+                </tr>
+                <tr>
+                  <td>client_id</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>client_secret</td>
+                  <td data-translate-it="Solo per i siti con backend (oppure HTTP Basic)." data-translate-en="Only for websites with a backend (or HTTP Basic).">Solo per i siti con backend (oppure HTTP Basic).</td>
+                </tr>
+                <tr>
+                  <td>code_verifier</td>
+                  <td data-translate-it="Il valore casuale da cui hai calcolato code_challenge." data-translate-en="The random value you computed code_challenge from.">Il valore casuale da cui hai calcolato code_challenge.</td>
+                </tr>
+              </table>
+            </div>
+            <p class="note">{"access_token":"…","token_type":"Bearer","expires_in":3600,"scope":"profile"}</p>
+          </div>
+
+          <div class="ep" style="margin-bottom:0">
+            <div class="ep-head">
+              <span class="method">GET</span>
+              <span class="ep-url">/oauth/userinfo.php</span>
+            </div>
+            <p class="note" data-translate-it="Header: Authorization: Bearer ACCESS_TOKEN (il token dura 1 ora)." data-translate-en="Header: Authorization: Bearer ACCESS_TOKEN (the token lasts 1 hour).">Header: Authorization: Bearer ACCESS_TOKEN (il token dura 1 ora).</p>
+            <div class="tbl-wrap">
+              <table>
+                <tr>
+                  <th>Campo</th>
+                  <th></th>
+                </tr>
+                <tr>
+                  <td>sub</td>
+                  <td data-translate-it="ID stabile dell'utente: usa questo per riconoscerlo ai login successivi." data-translate-en="Stable user ID: use this to recognise the user on later logins.">ID stabile dell'utente: usa questo per riconoscerlo ai login successivi.</td>
+                </tr>
+                <tr>
+                  <td>username</td>
+                  <td data-translate-it="Nome utente." data-translate-en="Username.">Nome utente.</td>
+                </tr>
+                <tr>
+                  <td>profile_photo</td>
+                  <td data-translate-it="URL della foto profilo, oppure null." data-translate-en="Profile photo URL, or null.">URL della foto profilo, oppure null.</td>
+                </tr>
+              </table>
+            </div>
+            <p class="note">{"sub":"123","username":"marco","profile_photo":"https://…"}</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="esempi">
+        <h2 data-translate-it="Esempi di codice" data-translate-en="Code examples">Esempi di codice</h2>
+        <p class="sub" id="ex-sub"
+          data-translate-it="Se hai registrato un'app, il tuo client_id e il tuo callback sono già inseriti negli esempi."
+          data-translate-en="If you registered an app, your client_id and callback are already filled in below.">Se hai registrato un'app, il tuo client_id e il tuo callback sono già inseriti negli esempi.</p>
+        <div class="card">
+          <div class="tabs" id="tabs">
+            <button type="button" class="tab active" data-tpl="tpl-php">PHP</button>
+            <button type="button" class="tab" data-tpl="tpl-node">Node.js</button>
+            <button type="button" class="tab" data-tpl="tpl-spa">JavaScript (PKCE)</button>
+            <button type="button" class="tab" data-tpl="tpl-curl">cURL</button>
+          </div>
+          <div class="code-wrap">
+            <div class="code-bar">
+              <span class="code-lang" id="code-lang">PHP</span>
+              <button type="button" class="btn-ghost" onclick="copyText('code-block', this)" data-translate-it="Copia" data-translate-en="Copy">Copia</button>
+            </div>
+            <pre><code id="code-block"></code></pre>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="sicurezza">
+        <h2 data-translate-it="Buone pratiche" data-translate-en="Best practices">Buone pratiche</h2>
+        <div class="card">
+          <ul class="tips">
+            <li>
+              <i class="fas fa-check"></i>
+              <span data-translate-it="Controlla sempre lo state al ritorno: se non coincide con quello che avevi generato, scarta la richiesta." data-translate-en="Always verify state on return: if it doesn't match what you generated, discard the request.">Controlla sempre lo state al ritorno: se non coincide con quello che avevi generato, scarta la richiesta.</span>
+            </li>
+            <li>
+              <i class="fas fa-check"></i>
+              <span data-translate-it="Usa sub come identificatore dell'utente, non lo username." data-translate-en="Use sub as the user identifier, not the username.">Usa sub come identificatore dell'utente, non lo username.</span>
+            </li>
+            <li>
+              <i class="fas fa-check"></i>
+              <span data-translate-it="Non collegare un account Rena a un tuo account esistente solo perché lo username è uguale: due persone diverse possono avere lo stesso nome su siti diversi." data-translate-en="Don't link a Rena account to an existing account of yours just because the username matches: different people can share a name across sites.">Non collegare un account Rena a un tuo account esistente solo perché lo username è uguale: due persone diverse possono avere lo stesso nome su siti diversi.</span>
+            </li>
+            <li>
+              <i class="fas fa-check"></i>
+              <span data-translate-it="Se scarichi la foto profilo, fallo dal tuo server e controlla che sia davvero un'immagine." data-translate-en="If you download the profile photo, do it from your server and check it really is an image.">Se scarichi la foto profilo, fallo dal tuo server e controlla che sia davvero un'immagine.</span>
+            </li>
+            <li class="bad">
+              <i class="fas fa-xmark"></i>
+              <span data-translate-it="Non mettere mai il client_secret nel codice JavaScript di una pagina, in un'app mobile o su GitHub. Se è finito in pubblico, rigeneralo dalla lista delle tue app." data-translate-en="Never put the client_secret in page JavaScript, a mobile app or on GitHub. If it leaked, regenerate it from your apps list.">Non mettere mai il client_secret nel codice JavaScript di una pagina, in un'app mobile o su GitHub. Se è finito in pubblico, rigeneralo dalla lista delle tue app.</span>
+            </li>
+          </ul>
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3 style="margin-bottom:12px" data-translate-it="Errori comuni" data-translate-en="Common errors">Errori comuni</h3>
+          <div class="tbl-wrap">
+            <table>
+              <tr>
+                <th>Messaggio</th>
+                <th></th>
+              </tr>
+              <tr>
+                <td>Richiesta non valida</td>
+                <td data-translate-it="client_id sconosciuto, oppure redirect_uri diverso da quelli registrati (anche solo per uno slash finale o http/https)." data-translate-en="Unknown client_id, or redirect_uri different from the registered ones (even a trailing slash or http/https).">client_id sconosciuto, oppure redirect_uri diverso da quelli registrati (anche solo per uno slash finale o http/https).</td>
+              </tr>
+              <tr>
+                <td>invalid_grant</td>
+                <td data-translate-it="Codice scaduto (2 minuti), già usato, redirect_uri diverso o code_verifier sbagliato." data-translate-en="Code expired (2 minutes), already used, different redirect_uri or wrong code_verifier.">Codice scaduto (2 minuti), già usato, redirect_uri diverso o code_verifier sbagliato.</td>
+              </tr>
+              <tr>
+                <td>invalid_client</td>
+                <td data-translate-it="client_id o client_secret errati." data-translate-en="Wrong client_id or client_secret.">client_id o client_secret errati.</td>
+              </tr>
+              <tr>
+                <td>invalid_token</td>
+                <td data-translate-it="Token scaduto (1 ora) o header Authorization mancante." data-translate-en="Token expired (1 hour) or missing Authorization header.">Token scaduto (1 ora) o header Authorization mancante.</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <script type="text/plain" id="tpl-php"><?php
+// ===== auth/rena.php : avvia il login =====
+session_start();
+$state    = bin2hex(random_bytes(16));
+$verifier = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
+$_SESSION['rena'] = ['state' => $state, 'verifier' => $verifier];
+
+header('Location: https://rena.altervista.org/oauth/authorize.php?' . http_build_query([
+    'response_type'         => 'code',
+    'client_id'             => '{{CLIENT_ID}}',
+    'redirect_uri'          => '{{REDIRECT_URI}}',
+    'scope'                 => 'profile',
+    'state'                 => $state,
+    'code_challenge'        => rtrim(strtr(base64_encode(hash('sha256', $verifier, true)), '+/', '-_'), '='),
+    'code_challenge_method' => 'S256',
+]));
+exit;
+
+
+<?php
+// ===== auth/rena/callback.php : ritorno da Rena ID =====
+session_start();
+$saved = $_SESSION['rena'] ?? null;
+unset($_SESSION['rena']);
+
+if (!$saved || !hash_equals($saved['state'], $_GET['state'] ?? '')) die('Richiesta non valida');
+if (isset($_GET['error'])) die('Accesso annullato');
+
+function post($url, $data, $headers = []) {
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_TIMEOUT => 10,
+        CURLOPT_POSTFIELDS => http_build_query($data), CURLOPT_HTTPHEADER => $headers,
+    ]);
+    $out = json_decode(curl_exec($ch), true);
+    curl_close($ch);
+    return $out;
+}
+
+$tok = post('https://rena.altervista.org/oauth/token.php', [
+    'grant_type'    => 'authorization_code',
+    'code'          => $_GET['code'] ?? '',
+    'redirect_uri'  => '{{REDIRECT_URI}}',
+    'client_id'     => '{{CLIENT_ID}}',
+    'client_secret' => 'IL_TUO_CLIENT_SECRET',   // tienilo fuori dalla cartella pubblica!
+    'code_verifier' => $saved['verifier'],
+]);
+if (empty($tok['access_token'])) die('Login non riuscito');
+
+$me = post('https://rena.altervista.org/oauth/userinfo.php',
+           ['access_token' => $tok['access_token']],
+           ['Authorization: Bearer ' . $tok['access_token']]);
+
+// $me['sub']           -> ID stabile: cercalo/crealo nel tuo database
+// $me['username']      -> nome utente
+// $me['profile_photo'] -> URL della foto (o null)
+// Ora crea la sessione del tuo sito per quell'utente.</script>
+
+  <script type="text/plain" id="tpl-node">// npm i express express-session   (Node 18+)
+import express from 'express';
+import session from 'express-session';
+import crypto from 'node:crypto';
+
+const RENA = 'https://rena.altervista.org/oauth';
+const CLIENT_ID = '{{CLIENT_ID}}';
+const CLIENT_SECRET = process.env.RENA_CLIENT_SECRET;   // mai nel codice!
+const REDIRECT_URI = '{{REDIRECT_URI}}';
+const b64url = (buf) => buf.toString('base64url');
+
+const app = express();
+app.use(session({ secret: process.env.SESSION_SECRET, resave: false, saveUninitialized: false }));
+
+app.get('/auth/rena', (req, res) => {
+  const verifier = b64url(crypto.randomBytes(32));
+  const challenge = b64url(crypto.createHash('sha256').update(verifier).digest());
+  const state = b64url(crypto.randomBytes(16));
+  req.session.rena = { verifier, state };
+
+  res.redirect(RENA + '/authorize.php?' + new URLSearchParams({
+    response_type: 'code', client_id: CLIENT_ID, redirect_uri: REDIRECT_URI,
+    scope: 'profile', state, code_challenge: challenge, code_challenge_method: 'S256',
+  }));
+});
+
+app.get('/auth/rena/callback', async (req, res) => {
+  const saved = req.session.rena;
+  delete req.session.rena;
+  if (!saved || req.query.state !== saved.state) return res.status(400).send('Richiesta non valida');
+  if (req.query.error || !req.query.code) return res.status(400).send('Accesso annullato');
+
+  const tok = await (await fetch(RENA + '/token.php', {
+    method: 'POST',
+    body: new URLSearchParams({
+      grant_type: 'authorization_code', code: req.query.code, redirect_uri: REDIRECT_URI,
+      client_id: CLIENT_ID, client_secret: CLIENT_SECRET, code_verifier: saved.verifier,
+    }),
+  })).json();
+  if (!tok.access_token) return res.status(401).send('Login non riuscito');
+
+  const me = await (await fetch(RENA + '/userinfo.php', {
+    headers: { Authorization: 'Bearer ' + tok.access_token },
+  })).json();
+
+  // me.sub, me.username, me.profile_photo  -> crea/recupera l'utente e avvia la tua sessione
+  req.session.userSub = me.sub;
+  res.redirect('/');
+});
+
+app.listen(3000);</script>
+
+  <script type="text/plain" id="tpl-spa">// App mobile o sito solo front-end: NIENTE client_secret, la sicurezza e' PKCE.
+const RENA = 'https://rena.altervista.org/oauth';
+const CLIENT_ID = '{{CLIENT_ID}}';
+const REDIRECT_URI = '{{REDIRECT_URI}}';
+
+const b64url = (bytes) => btoa(String.fromCharCode(...bytes))
+  .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+// 1) Pulsante "Accedi con Rena ID"
+async function loginWithRena() {
+  const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)));
+  const challenge = b64url(new Uint8Array(
+    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))));
+  const state = b64url(crypto.getRandomValues(new Uint8Array(16)));
+  sessionStorage.setItem('rena_pkce', JSON.stringify({ verifier, state }));
+
+  location.href = RENA + '/authorize.php?' + new URLSearchParams({
+    response_type: 'code', client_id: CLIENT_ID, redirect_uri: REDIRECT_URI,
+    scope: 'profile', state, code_challenge: challenge, code_challenge_method: 'S256',
+  });
+}
+
+// 2) Nella pagina di callback
+async function handleRenaCallback() {
+  const p = new URLSearchParams(location.search);
+  const saved = JSON.parse(sessionStorage.getItem('rena_pkce') || 'null');
+  sessionStorage.removeItem('rena_pkce');
+  if (!saved || p.get('state') !== saved.state || !p.get('code')) throw new Error('Login non valido');
+
+  const tok = await (await fetch(RENA + '/token.php', {
+    method: 'POST',
+    body: new URLSearchParams({
+      grant_type: 'authorization_code', code: p.get('code'), redirect_uri: REDIRECT_URI,
+      client_id: CLIENT_ID, code_verifier: saved.verifier,
+    }),
+  })).json();
+
+  const me = await (await fetch(RENA + '/userinfo.php', {
+    headers: { Authorization: 'Bearer ' + tok.access_token },
+  })).json();
+  return me; // { sub, username, profile_photo }
+}</script>
+
+  <script type="text/plain" id="tpl-curl"># 1) Apri nel browser (sostituisci state e code_challenge):
+#    https://rena.altervista.org/oauth/authorize.php?response_type=code&client_id={{CLIENT_ID}}&redirect_uri={{REDIRECT_URI_ENC}}&scope=profile&state=STATE&code_challenge=CHALLENGE&code_challenge_method=S256
+
+# 2) Scambia il codice ricevuto con un token
+curl -X POST https://rena.altervista.org/oauth/token.php \
+  -d grant_type=authorization_code \
+  -d code=CODICE_RICEVUTO \
+  --data-urlencode "redirect_uri={{REDIRECT_URI}}" \
+  -d client_id={{CLIENT_ID}} \
+  -d client_secret=IL_TUO_CLIENT_SECRET \
+  -d code_verifier=IL_TUO_VERIFIER
+# -> {"access_token":"...","token_type":"Bearer","expires_in":3600,"scope":"profile"}
+
+# 3) Leggi il profilo
+curl https://rena.altervista.org/oauth/userinfo.php \
+  -H "Authorization: Bearer ACCESS_TOKEN"
+# -> {"sub":"123","username":"marco","profile_photo":"https://..."}</script>
+
+  <script>
+    function translatePage(lang) {
+      localStorage.setItem('preferredLanguage', lang);
+      document.cookie = `preferredLanguage=${lang}; path=/; max-age=${30 * 24 * 60 * 60}`;
+
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', lang);
+      window.location.href = url.toString();
+
+      document.querySelectorAll('[data-translate-it]').forEach(function (el) {
+        if (lang === 'it') {
+          el.textContent = el.getAttribute('data-translate-it');
+        } else if (lang === 'en') {
+          el.textContent = el.getAttribute('data-translate-en');
+        }
+      });
+
+      var titleElement = document.getElementById('page-title');
+      if (titleElement) {
+        titleElement.textContent = 'Rena - Docs API Rena ID';
+      }
+
+      updateLanguageIndicator(lang);
+    }
+
+    function updateLanguageIndicator(activeLang) {
+      document.querySelectorAll('.language-option').forEach(function (option) {
+        const lang = option.getAttribute('data-lang');
+        if (lang === activeLang) {
+          option.classList.add('active');
+        } else {
+          option.classList.remove('active');
+        }
+      });
+    }
+
+    function loadSavedLanguage() {
+      const cookieLang = document.cookie.split('; ').find(row => row.startsWith('preferredLanguage='))?.split('=')[1];
+      const savedLang = cookieLang || localStorage.getItem('preferredLanguage') || 'it';
+
+      updateLanguageIndicator(savedLang);
+      document.querySelectorAll('[data-translate-it]').forEach(function (el) {
+        if (savedLang === 'it') {
+          el.textContent = el.getAttribute('data-translate-it');
+        } else if (savedLang === 'en') {
+          el.textContent = el.getAttribute('data-translate-en');
+        }
+      });
+    }
+
+    function checkLoginStatus() {
+      fetch('account.php?nocache=' + new Date().getTime(), {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+        cache: 'no-cache'
+      })
+        .then(response => response.text())
+        .then(text => {
+          try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(text, 'text/html');
+
+            const username = doc.querySelector('.user-info h2')?.textContent.replace('Benvenuto, ', '').replace('Welcome, ', '').replace('!', '').trim();
+            const profilePhoto = doc.querySelector('.profile-photo')?.getAttribute('src');
+
+            updateProfileUI({
+              logged_in: true,
+              username: username,
+              profile_photo: profilePhoto
+            });
+          } catch (error) {
+            console.error('Errore nel parsing della risposta:', error);
+            showLoginUI();
+          }
+        })
+        .catch(error => {
+          console.error('Errore nel controllo login:', error);
+          showLoginUI();
+        });
+    }
+
+    function updateProfileUI(data) {
+      const profileButton = document.getElementById('profile-button');
+      if (!profileButton) return;
+
+      profileButton.innerHTML = '';
+
+      if (data && data.logged_in === true && data.username && data.username.trim() !== '') {
+        if (data.profile_photo) {
+          const img = document.createElement('img');
+          img.className = 'profile-pic';
+          img.alt = 'Foto profilo';
+
+          img.onerror = function () {
+            const initial = data.username.charAt(0).toUpperCase();
+            const defaultAvatarDiv = document.createElement('div');
+            defaultAvatarDiv.className = 'default-avatar';
+            defaultAvatarDiv.textContent = initial;
+            profileButton.appendChild(defaultAvatarDiv);
+          };
+
+          img.onload = function () {
+            profileButton.appendChild(img);
+          };
+
+          img.src = data.profile_photo;
+
+        } else {
+          const initial = data.username.charAt(0).toUpperCase();
+          const defaultAvatarDiv = document.createElement('div');
+          defaultAvatarDiv.className = 'default-avatar';
+          defaultAvatarDiv.textContent = initial;
+          profileButton.appendChild(defaultAvatarDiv);
+        }
+
+        const accountMenuItemSpan = document.querySelector('.profile-menu-item span');
+        if (accountMenuItemSpan) {
+          accountMenuItemSpan.setAttribute('data-translate-it', 'Il mio account');
+          accountMenuItemSpan.setAttribute('data-translate-en', 'My Account');
+          const currentLang = localStorage.getItem('preferredLanguage') || 'it';
+          if (currentLang === 'it') {
+            accountMenuItemSpan.textContent = accountMenuItemSpan.getAttribute('data-translate-it');
+          } else {
+            accountMenuItemSpan.textContent = accountMenuItemSpan.getAttribute('data-translate-en');
+          }
+        }
+
+      } else {
+        const defaultAvatarDiv = document.createElement('div');
+        defaultAvatarDiv.className = 'default-avatar';
+        defaultAvatarDiv.innerHTML = `<i class="fas fa-user"></i>`;
+        profileButton.appendChild(defaultAvatarDiv);
+
+        const accountMenuItemSpan = document.querySelector('.profile-menu-item span');
+        if (accountMenuItemSpan) {
+          accountMenuItemSpan.setAttribute('data-translate-it', 'Accedi');
+          accountMenuItemSpan.setAttribute('data-translate-en', 'Login');
+          const currentLang = localStorage.getItem('preferredLanguage') || 'it';
+          if (currentLang === 'it') {
+            accountMenuItemSpan.textContent = accountMenuItemSpan.getAttribute('data-translate-it');
+          } else {
+            accountMenuItemSpan.textContent = accountMenuItemSpan.getAttribute('data-translate-en');
+          }
+        }
+      }
+    }
+
+    function showLoginUI() {
+      const profileButton = document.getElementById('profile-button');
+      if (profileButton) {
+        profileButton.innerHTML = '';
+        const defaultAvatarDiv = document.createElement('div');
+        defaultAvatarDiv.className = 'default-avatar';
+        defaultAvatarDiv.innerHTML = `<i class="fas fa-user"></i>`;
+        profileButton.appendChild(defaultAvatarDiv);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const profileButton = document.getElementById('profile-button');
+      const profileMenu = document.getElementById('profile-menu');
+
+      if (profileButton && profileMenu) {
+        checkLoginStatus();
+        loadSavedLanguage();
+
+        profileButton.addEventListener('click', function (e) {
+          e.stopPropagation();
+          profileMenu.classList.toggle('active');
+        });
+
+        document.querySelectorAll('.language-option').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const lang = this.getAttribute('data-lang');
+            translatePage(lang);
+          });
+        });
+      }
+
+      document.addEventListener('click', function (event) {
+        if (profileMenu && !profileMenu.contains(event.target) && profileMenu.classList.contains('active') && event.target !== profileButton) {
+          profileMenu.classList.remove('active');
+        }
+      });
+
+      document.addEventListener('contextmenu', function (event) {
+        event.preventDefault();
+        if (window.innerWidth > 768) {
+          const customMenu = document.getElementById('custom-menu');
+          if (customMenu) {
+            customMenu.style.display = 'block';
+            customMenu.style.left = event.pageX + 'px';
+            customMenu.style.top = event.pageY + 'px';
+          }
+        }
+      });
+
+      document.addEventListener('click', function (event) {
+        const customMenu = document.getElementById('custom-menu');
+        if (customMenu && !customMenu.contains(event.target)) {
+          customMenu.style.display = 'none';
+        }
+      });
+    });
+  </script>
+
+  <script>
+    const HL = (function () {
+      const STR = /'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"/;
+      const STR_JS = /'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*"|`(?:\\.|[^`\\])*`/;
+      const NUM = /\b\d+(?:\.\d+)?\b/;
+      const WORD = /[A-Za-z_][A-Za-z0-9_]*/;
+      const VAR = /\$[A-Za-z_][A-Za-z0-9_]*/;
+      const REGEX = /\/(?![\/*])(?:\\.|\[(?:\\.|[^\]\\\n])*\]|[^\/\\\n\[])+\/[gimsuy]*/;
+
+      const set = (s) => new Set(s.split(' '));
+
+      const LANGS = {
+        js: {
+          parts: [
+            ['c', /\/\/[^\n]*|\/\*[\s\S]*?\*\//],
+            ['s', STR_JS],
+            ['r', REGEX],
+            ['n', NUM],
+            ['w', WORD]
+          ],
+          kw: set('const let var function async class new true false null undefined typeof of in this super'),
+          kwc: set('import from export default return if else for while break continue switch case throw try catch finally await delete'),
+          types: set('URLSearchParams Uint8Array TextEncoder JSON Error String Date Buffer Promise Object Array Math'),
+          globals: set('crypto console process location document window sessionStorage localStorage fetch express session'),
+          prop: '.'
+        },
+        php: {
+          parts: [
+            ['c', /\/\/[^\n]*|#[^\n]*|\/\*[\s\S]*?\*\//],
+            ['s', STR],
+            ['g', /<\?php|\?>/],
+            ['v', VAR],
+            ['n', NUM],
+            ['w', WORD]
+          ],
+          kw: set('function true false null array new echo isset empty unset die exit'),
+          kwc: set('return if else elseif foreach for while as break continue switch case throw try catch'),
+          types: set(''),
+          globals: set(''),
+          prop: '->'
+        },
+        bash: {
+          parts: [
+            ['c', /#[^\n]*/],
+            ['s', STR],
+            ['u', /https?:\/\/[^\s"'\\]+/],
+            ['v', VAR],
+            ['fl', /--?[A-Za-z][A-Za-z0-9-]*/],
+            ['n', NUM],
+            ['w', WORD]
+          ],
+          kw: set('curl'),
+          kwc: set(''),
+          types: set(''),
+          globals: set(''),
+          prop: null
+        }
+      };
+
+      for (const k in LANGS) {
+        const L = LANGS[k];
+        L.src = L.parts.map(p => '(' + p[1].source + ')').join('|');
+        L.kinds = L.parts.map(p => p[0]);
+      }
+
+      const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const wrap = (cls, txt) => '<span class="tk-' + cls + '">' + esc(txt) + '</span>';
+
+      function classifyWord(L, src, idx, w) {
+        if (L.kw.has(w)) return 'k';
+        if (L.kwc.has(w)) return 'kc';
+        const after = src.slice(idx + w.length).match(/^\s*(.)/);
+        const isCall = after && after[1] === '(';
+        if (isCall) return 'f';
+        if (L.prop && src.slice(idx - L.prop.length, idx) === L.prop) return 'p';
+        if (L.types.has(w)) return 't';
+        if (L.globals.has(w)) return 'o';
+        if (/^[A-Z][A-Z0-9_]+$/.test(w)) return 'o';
+        return null;
+      }
+
+      return function highlight(src, lang) {
+        const L = LANGS[lang];
+        if (!L) return esc(src);
+        const re = new RegExp(L.src, 'g');
+        let out = '', last = 0, m;
+
+        while ((m = re.exec(src))) {
+          const idx = m.index, txt = m[0];
+          let g = 1;
+          while (g < m.length && m[g] === undefined) g++;
+          const kind = L.kinds[g - 1];
+          let cls = kind;
+
+          if (kind === 'w') {
+            cls = classifyWord(L, src, idx, txt);
+          } else if (kind === 'r') {
+            const prev = src.slice(0, idx).replace(/\s+$/, '').slice(-1);
+            if (prev && '(,=:[!&|?{};'.indexOf(prev) === -1) {
+              out += esc(src.slice(last, idx + 1));
+              last = idx + 1;
+              re.lastIndex = last;
+              continue;
+            }
+          } else if (kind === 'fl') {
+            const before = src[idx - 1];
+            if (before !== undefined && !/\s/.test(before)) {
+              out += esc(src.slice(last, idx + txt.length));
+              last = idx + txt.length;
+              continue;
+            }
+          }
+
+          out += esc(src.slice(last, idx));
+          out += cls ? wrap(cls, txt) : esc(txt);
+          last = idx + txt.length;
+        }
+
+        return out + esc(src.slice(last));
+      };
+    })();
+
+    const REG_API = '/oauth/register_client.php';
+    let CSRF = '';
+    let MY_APPS = [];
+
+    function curLang() {
+      const c = document.cookie.split('; ').find(r => r.startsWith('preferredLanguage='));
+      return (c ? c.split('=')[1] : localStorage.getItem('preferredLanguage')) || 'it';
+    }
+
+    function T(it, en) {
+      return curLang() === 'en' ? en : it;
+    }
+
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+    async function regFetch(body) {
+      const opt = { credentials: 'same-origin', cache: 'no-store' };
+      let url = REG_API;
+
+      if (body) {
+        opt.method = 'POST';
+        opt.headers = { 'Content-Type': 'application/json', 'X-CSRF-Token': CSRF };
+        opt.body = JSON.stringify(body);
+      } else {
+        url += '?action=me&t=' + Date.now();
+      }
+
+      const r = await fetch(url, opt);
+      let j;
+      try {
+        j = await r.json();
+      } catch (e) {
+        throw new Error(T('Risposta non valida dal server', 'Invalid server response'));
+      }
+      return j;
+    }
+
+    function setMsg(text, kind) {
+      const el = $('reg-msg');
+      el.textContent = text || '';
+      el.className = 'msg' + (kind ? ' ' + kind : '');
+    }
+
+    async function loadMe() {
+      try {
+        const me = await regFetch();
+
+        if (!me.logged_in) {
+          $('gate-login').classList.remove('hidden');
+          $('reg-area').classList.add('hidden');
+          $('gate-link').href = 'login.php?redirect=' + encodeURIComponent(location.href.split('#')[0]);
+          return;
+        }
+
+        CSRF = me.csrf;
+        MY_APPS = me.apps || [];
+        $('gate-login').classList.add('hidden');
+        $('reg-area').classList.remove('hidden');
+        renderApps();
+        renderExample();
+      } catch (e) {
+        $('gate-login').classList.remove('hidden');
+      }
+    }
+
+    function suggestCallback() {
+      let d = $('dom').value.trim().replace(/^https?:\/\//i, '').split('/')[0].split('?')[0];
+      if (!d) return;
+      $('redirect-uris').value = (/^(localhost|127\.0\.0\.1)(:\d+)?$/i.test(d) ? 'http://' : 'https://') + d + '/auth/rena/callback';
+    }
+
+    async function createApp() {
+      const name = $('app-name').value.trim();
+      const type = document.querySelector('input[name="app-type"]:checked').value;
+      const uris = $('redirect-uris').value.split('\n').map(s => s.trim()).filter(Boolean);
+      setMsg('');
+
+      if (name.length < 3) {
+        return setMsg(T('Scrivi un nome di almeno 3 caratteri.', 'Enter a name of at least 3 characters.'), 'err');
+      }
+      if (!uris.length) {
+        return setMsg(T('Inserisci almeno un URL di callback.', 'Enter at least one callback URL.'), 'err');
+      }
+
+      const btn = $('btn-create');
+      btn.disabled = true;
+
+      try {
+        const r = await regFetch({ action: 'create', name, type, redirect_uris: uris });
+        if (!r.success) return setMsg(r.error || T('Errore', 'Error'), 'err');
+
+        showCredentials(r.client_id, r.client_secret);
+        $('app-name').value = '';
+        $('redirect-uris').value = '';
+        setMsg(T('App registrata correttamente.', 'App registered successfully.'), 'ok');
+        await loadMe();
+      } catch (e) {
+        setMsg(e.message, 'err');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function showCredentials(clientId, secret) {
+      $('cred-id').textContent = clientId;
+      $('cred-secret').textContent = secret || '';
+      $('cred-secret-row').classList.toggle('hidden', !secret);
+      $('cred-box').classList.remove('hidden');
+      $('cred-box').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function renderApps() {
+      const box = $('apps');
+      box.textContent = '';
+      $('apps-empty').classList.toggle('hidden', MY_APPS.length > 0);
+
+      MY_APPS.forEach(app => {
+        const card = document.createElement('div');
+        card.className = 'app';
+
+        const head = document.createElement('div');
+        head.className = 'app-head';
+
+        const nm = document.createElement('div');
+        const n = document.createElement('span');
+        n.className = 'app-name';
+        n.textContent = app.name;
+        const b = document.createElement('span');
+        b.className = 'badge';
+        b.textContent = app.type === 'public' ? T('senza secret (PKCE)', 'no secret (PKCE)') : T('con backend', 'with backend');
+        nm.append(n, b);
+        head.appendChild(nm);
+        card.appendChild(head);
+
+        const idRow = document.createElement('div');
+        idRow.className = 'cred-val';
+        const code = document.createElement('code');
+        code.textContent = app.client_id;
+        idRow.appendChild(code);
+        card.appendChild(idRow);
+
+        const ul = document.createElement('ul');
+        (app.redirect_uris || []).forEach(u => {
+          const li = document.createElement('li');
+          li.textContent = u;
+          ul.appendChild(li);
+        });
+        card.appendChild(ul);
+
+        const actions = document.createElement('div');
+        actions.className = 'app-actions';
+
+        if (app.type !== 'public') {
+          const rot = document.createElement('button');
+          rot.className = 'btn-ghost';
+          rot.textContent = T('Genera nuovo secret', 'Generate new secret');
+          rot.onclick = () => rotateSecret(app.client_id);
+          actions.appendChild(rot);
+        }
+
+        const del = document.createElement('button');
+        del.className = 'btn-ghost btn-danger';
+        del.textContent = T('Elimina', 'Delete');
+        del.onclick = () => deleteApp(app);
+        actions.appendChild(del);
+
+        card.appendChild(actions);
+        box.appendChild(card);
+      });
+    }
+
+    async function rotateSecret(clientId) {
+      if (!confirm(T('Il vecchio secret smetterà di funzionare subito. Continuare?', 'The old secret will stop working immediately. Continue?'))) return;
+      const r = await regFetch({ action: 'rotate', client_id: clientId });
+      if (!r.success) return alert(r.error || 'Error');
+      showCredentials(r.client_id, r.client_secret);
+    }
+
+    async function deleteApp(app) {
+      if (!confirm(T(
+        'Eliminare "' + app.name + '"? Gli utenti non potranno più accedere con Rena ID su quell\'app.',
+        'Delete "' + app.name + '"? Users will no longer be able to sign in with Rena ID on that app.'
+      ))) return;
+
+      const r = await regFetch({ action: 'delete', client_id: app.client_id });
+      if (!r.success) return alert(r.error || 'Error');
+      $('cred-box').classList.add('hidden');
+      await loadMe();
+    }
+
+    function copyText(id, btn) {
+      const text = $(id).textContent;
+      const done = () => {
+        const old = btn.textContent;
+        btn.textContent = '✓';
+        setTimeout(() => btn.textContent = old, 1200);
+      };
+
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(done).catch(() => { });
+      } else {
+        const r = document.createRange();
+        r.selectNodeContents($(id));
+        const s = getSelection();
+        s.removeAllRanges();
+        s.addRange(r);
+        document.execCommand('copy');
+        done();
+      }
+    }
+
+    const TPL_LANG = { 'tpl-php': 'php', 'tpl-node': 'js', 'tpl-spa': 'js', 'tpl-curl': 'bash' };
+    const TPL_LABEL = { 'tpl-php': 'PHP', 'tpl-node': 'Node.js', 'tpl-spa': 'JavaScript', 'tpl-curl': 'cURL' };
+    let currentTpl = 'tpl-php';
+
+    function renderExample() {
+      const app = MY_APPS[0];
+      const clientId = app ? app.client_id : 'IL_TUO_CLIENT_ID';
+      const redirect = app && app.redirect_uris && app.redirect_uris[0]
+        ? app.redirect_uris[0]
+        : 'https://miosito.it/auth/rena/callback';
+
+      const raw = $(currentTpl).textContent.replace(/^\n/, '');
+      const text = raw
+        .split('{{CLIENT_ID}}').join(clientId)
+        .split('{{REDIRECT_URI_ENC}}').join(encodeURIComponent(redirect))
+        .split('{{REDIRECT_URI}}').join(redirect);
+
+      $('code-block').innerHTML = HL(text, TPL_LANG[currentTpl]);
+      $('code-lang').textContent = TPL_LABEL[currentTpl];
+    }
+
+    document.querySelectorAll('#tabs .tab').forEach(t => t.addEventListener('click', () => {
+      document.querySelectorAll('#tabs .tab').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      currentTpl = t.getAttribute('data-tpl');
+      renderExample();
+    }));
+
+    document.addEventListener('DOMContentLoaded', () => {
+      renderExample();
+      loadMe();
+    });
+  </script>
+</body>
+
+</html>
