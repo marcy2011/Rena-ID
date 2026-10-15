@@ -55,6 +55,11 @@ Per maggiori dettagli, consulta la [Privacy Policy di Rena](https://rena.altervi
 
 ---
 
+## Rena ID API
+Per integrare "Accedi con Rena ID" nella tua app o sito web visita: [https://rena.altervista.org/rena-id.html](https://rena.altervista.org/docs-renaid-api)
+
+---
+
 ## Contatti e supporto
 
 Per domande o supporto tecnico visita [Rena Supporto](https://renasupporto.altervista.org).
@@ -110,6 +115,11 @@ For more details, see the [Rena Privacy Policy](https://rena.altervista.org/priv
 1. Visit the official RENA ID page: [https://rena.altervista.org/rena-id.html](https://rena.altervista.org/rena-id.html)  
 2. Click **"Create your Rena ID"** to sign up.  
 3. Follow the guided steps to set up your account.
+
+---
+
+## Rena ID API
+To integrate "Sign in with Rena ID" into your app or website, visit: [https://rena.altervista.org/docs-renaid-api](https://rena.altervista.org/docs-renaid-api)
 
 ---
 
