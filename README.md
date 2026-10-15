@@ -56,7 +56,7 @@ Per maggiori dettagli, consulta la [Privacy Policy di Rena](https://rena.altervi
 ---
 
 ## Rena ID API
-Per integrare "Accedi con Rena ID" nella tua app o sito web visita: [https://rena.altervista.org/rena-id.html](https://rena.altervista.org/docs-renaid-api)
+Per integrare "Accedi con Rena ID" nella tua app o sito web visita: [https://rena.altervista.org/docs-renaid-api](https://rena.altervista.org/docs-renaid-api)
 
 ---
 
