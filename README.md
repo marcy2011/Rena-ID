@@ -129,11 +129,10 @@ Il flusso consente ai servizi integrati di ottenere le informazioni dell'utente 
 
 ## Link utili
 
-- **Sito ufficiale:** https://rena.altervista.org/rena-id.html
+- **Sito ufficiale:** https://rena.altervista.org/rena-id
 - **Documentazione API:** https://rena.altervista.org/docs-renaid-api
-- **Informativa sulla privacy:** https://rena.altervista.org/privacy-policy.html
+- **Informativa sulla privacy:** https://rena.altervista.org/privacy-policy
 - **Supporto:** https://renasupporto.altervista.org
-- **Novità su Rena ID:** https://rena.altervista.org/view-news?id=19&lang=it
 
 ---
 
