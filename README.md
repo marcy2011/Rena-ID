@@ -238,14 +238,7 @@ The flow allows integrated services to obtain the user information permitted by 
 
 ## Useful links
 
-- **Official website:** https://rena.altervista.org/rena-id.html
+- **Official website:** https://rena.altervista.org/rena-id
 - **API documentation:** https://rena.altervista.org/docs-renaid-api
-- **Privacy Policy:** https://rena.altervista.org/privacy-policy.html
+- **Privacy Policy:** https://rena.altervista.org/privacy-policy
 - **Support:** https://renasupporto.altervista.org
-- **Rena ID updates:** https://rena.altervista.org/view-news?id=19&lang=it
-
----
-
-<div align="center">
-  <sub>Part of the Rena ecosystem.</sub>
-</div>
